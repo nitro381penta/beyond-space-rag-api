@@ -7,3 +7,4 @@ python-multipart
 chromadb
 sentence-transformers
 pydub
+openai==1.76.0
