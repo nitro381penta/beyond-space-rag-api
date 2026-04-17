@@ -1,15 +1,18 @@
+from typing import List
 from sentence_transformers import SentenceTransformer
-from app.config import EMBED_MODEL_NAME
 
 _model = None
 
-def get_embed_model():
+def get_embedding_model():
     global _model
     if _model is None:
-        _model = SentenceTransformer(EMBED_MODEL_NAME)
+        _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
     return _model
 
-def embed_texts(texts: list[str]) -> list[list[float]]:
-    model = get_embed_model()
-    embeddings = model.encode(texts, normalize_embeddings=True)
-    return [emb.tolist() for emb in embeddings]
+def preload_embedding_model():
+    get_embedding_model()
+
+def embed_texts(texts: List[str]) -> List[List[float]]:
+    model = get_embedding_model()
+    embeddings = model.encode(texts, convert_to_numpy=True)
+    return embeddings.tolist()
