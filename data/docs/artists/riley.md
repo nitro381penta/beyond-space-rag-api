@@ -1,0 +1,45 @@
+### Bridget Riley
+
+Wer ist Bridget Riley?
+Bridget Riley (* 24.4.1931, West Norwood) zählt zu den bedeutendsten Künstlerinnen der Op Art in Großbritannien.
+
+## Kindheit und Ausbildung
+Bridget Riley wurde in Norwood, London, als Tochter eines Geschäftsmannes geboren. Ihre Kindheit verbrachte sie in Cornwall und Lincolnshire. Sie studierte von 1949 bis 1952 am Goldsmiths‘ College und von 1952 bis 1955 am Royal College of Art.
+
+## Werke
+Das Frühwerk von Bridget Riley ist von der Suche nach einem eigenen Stil geprägt. Sie begann, Figuren auf (halb-)impressionistische Weise zu malen, wechselte dann um 1958 zum Pointillismus und schuf hauptsächlich Landschaften (→ Postimpressionismus | Pointillismus | Divisionismus). Im Jahr 1960 entwickelte sie einen Stil, in dem sie die dynamischen Möglichkeiten optischer Phänomene erforschte. Diese sogenannten Op Art Werke, wie „Autumn“ aus dem Jahr 1963 (Tate Gallery, London), erzeugen eine desorientierende physikalische Wirkung auf das Auge.
+
+Riley unterrichtete zwei Jahre lang Kinder, bevor sie an die Loughborough School of Art wechselte, wo sie 1959 einen Grundkurs für Design einführte. Anschließend unterrichtete sie an der Hornsey School of Art und ab 1962 an der Croydon School of Art. Ab 1960 arbeitete sie für die Werbeagentur der J. Walter Thompson Group, gab jedoch 1963/64 die Lehre und Tätigkeit für eine Werbeagentur auf.
+
+In den 1980er Jahren – nach einem Aufenthalt in Ägypten – änderte sich Bridget Rileys Arbeit signifikant. Mit einer so genannten „ägyptischen Palette“ erreichte sie in ihrem Werk eine neue chromatische Intensität. Um sich auf die subtilen Abstufungen der Farbtöne zu konzentrieren, vereinfachte Bridget Riley die formale Gliederung ihrer Bilder. Zwischen 1980 und 1985 reduzierte sie ihre Kompositionen auf strenge Anordnungen vertikaler Streifen, eine Lösung, die sie zuvor zwischen 1967 und 1973 verwendet hatte. Die Position jedes Elements wird sorgfältig in Bezug auf Übereinstimmung, Kontrast und Proportionen bestimmt. 1986 erreichte Rileys Arbeit durch die Verwendung eines diagonalen Kompositionsformats eine noch stärkere visuelle Resonanz. Die Komposition wird von der Künstlerin zunächst in Gouache auf Papier ausgearbeitet und dann mit Hilfe von Assistenten auf Leinwand übertragen.
+
+Ein Hauptproblem dieser Art von Komposition besteht darin, ein einheitliches und ausgewogenes Feld visueller Wahrnehmung zu schaffen, das gleichzeitig dynamisch in Bezug auf einzelne Farben organisiert ist. Riley geht es darum, ähnliche und kontrastierende Farben auf eine Weise in Beziehung zu setzen, die eine gesättigte Farbintensität über die gesamte Bildebene aufrechterhält.
+
+## Ausstellungen und Preise
+Gruppenausstellungen umfassen Young Contemporaries, London, 1955; Umleitung, South London Art Gallery 1958; eine Art Council Touring Ausstellung, 1962; Tooth's Critics Choice-Ausstellung, ausgewählt von Edward Lucie-Smith, 1963; John Moores 'Ausstellung, Liverpool, 1963; Die neue Generation, Whitechapel Gallery 1964; Bewegung, Hanover Gallery, London, 1964; Gemälde und Skulpturen eines Jahrzehnts 1954-1964, Tate Gallery, 1964; und Op Art tourten 1967 durch Irland. Zu ihren zahlreichen europäischen und amerikanischen Ausstellungen gehörten The Sixties Collection Revisited, Aldrich Museum für zeitgenössische Kunst, Ridgefield, Connecticut, 1978.
+
+Riley wurde in Norwood, London, als Tochter eines Geschäftsmannes geboren. Ihre Kindheit verbrachte sie in Cornwall und Lincolnshire. Von 1949 bis 1952 studierte sie am Goldsmiths’ College und von 1952 bis 1955 am Royal College of Art. Zunächst malte sie Figurenmotive in einem halbimpressionistischen Stil, wechselte dann um 1958 zum Pointillismus und schuf vor allem Landschaften. Im Jahr 1960 entwickelte sie einen Stil, in dem sie die dynamischen Möglichkeiten optischer Phänomene erforschte. Diese sogenannten „Op-Art“-Werke, wie beispielsweise „Fall“, 1963 (Tate Gallery T00616), erzeugen eine verwirrende physische Wirkung auf das Auge.
+Riley unterrichtete zwei Jahre lang Kinder, bevor sie an die Loughborough School of Art wechselte, wo sie 1959 einen Grundkurs in Design ins Leben rief. Anschließend lehrte sie an der Hornsey School of Art und ab 1962 an der Croydon School of Art. Ab 1960 arbeitete sie für die Werbeagentur J. Walter Thompson Group, gab jedoch 1963–64 sowohl die Lehrtätigkeit als auch die Arbeit in der Werbeagentur auf.
+
+
+Bridget Louise Riley, CH CBE (* 24. April 1931 in West Norwood, London) ist eine britische Malerin, eine der führenden Vertreterinnen der Op-Art.
+
+## Leben
+Riley ist die Tochter eines Armeeoffiziers, der von Beruf Drucker war.[1] Sie verbrachte ihre Kindheit in Cornwall und erhielt von 1946 bis 1948 eine Kunstausbildung am Cheltenham Ladies’ College. Ihr Lehrer Colin Hayes, späterer Tutor am Royal College of Art in London, sorgte dafür, dass sie vom regulären Unterricht freigestellt wurde, um sich ganz der Entfaltung ihrer künstlerischen Begabung widmen zu können. Von 1949 bis 1952 besuchte Riley das Goldsmiths College in London und von 1952 bis 1955 das Royal College of Art, wo sie sich intensiv mit Georges Seurats Werk auseinandersetzte und mit dem Bachelor of Arts abschloss. Nach einem schweren Verkehrsunfall ihres Vaters, den sie über Monate hinweg pflegte, arbeitete sie als Glaswarenverkäuferin, unterrichtete Kinder und trat schließlich in die Werbeagentur von J. Walter Thompson ein, wo sie hauptsächlich an der Ausarbeitung der Motive von Photographien arbeitete. 1960 unternahm sie eine Italienreise, auf der sie sich mit Renaissancewerken wie denen des Piero della Francesca sowie mit dem Futurismus auseinandersetzte.
+
+Ein Lehrauftrag brachte sie im selben Jahr ans Hornsey College of Art, wo ihre ersten Op-Art-Bilder entstanden. 1962 hatte Riley ihre erste Einzelausstellung in der Gallery One in London, 1965 eine – bereits vor Eröffnung ausverkaufte – in der Richard Feigen Gallery in New York. Sie nahm an der Ausstellung The Responsive Eye im Museum of Modern Art (1965) teil. Sie erhielt 1968 den Internationalen Preis für Malerei der Biennale von Venedig. 1967 begann sie mit Farben zu experimentieren, zunächst nur mit Grau, später auch mit weiteren Farben. Impulse für ihre Farbgestaltung brachte 1981 eine Ägyptenreise.
+
+Ihre drei Ateliers befinden sich in Cornwall, wo sie während des Zweiten Weltkrieges lebte, sowie in Holland Park und im Département Vaucluse. 1983 gestaltete sie die Innenräume des Royal Liverpool Hospital. Im selben Jahr entwarf sie das Bühnenbild für Robert Norths Ballett Colour Moves. Mit Peter Sedgley arbeitete sie am S.P.A.C.E.-Project, dessen Ziel die Einrichtung von Ateliers für junge Künstler war.
+
+Sie war Teilnehmerin der 4. documenta in Kassel im Jahr 1968 und auch auf der Documenta 6 im Jahr 1977 als Künstlerin vertreten. 2012 erhielt die britische Künstlerin den Rubenspreis der Stadt Siegen.[2]
+
+## Werk
+Ihre Rosa Landschaft von 1960 ist an Seurats Pointillismus angelehnt, noch gegenständlich, begünstigt sie leuchtende Punkte gegenüber scharfen Formen. In Hidden Squares von 1961 gehen im Auge des Betrachters eigentlich getrennte Flächen mit Kreisen in Flächen mit Quadraten über.
+
+Ihre Fall und Current (1964) genannten Bilder zeigen schwarze, geschwungene Linien, die eine Wellenbewegung vortäuschen. Die späteren Werke Cataract (1967), die Streak-Serie (etwa Streak 2, 1979) und Rill (1976) verstärken den Effekt mittels Farben.
+
+Optische Illusionen im Sinne der Op Art setzten sich in Werken wie Blaze 1 (1962) fort, in dem ein konzentrisches Zickzackmuster den Eindruck einer vibrierenden und rotierenden Spirale erzeugt. Shiver von 1964 erzeugt mittels Reihen von vielen kleinen, unterschiedlich geneigten Dreiecken eine Wahrnehmung einer nicht vorhandenen Krümmung. Bilder der Art von Static 1 (1966) beruhen auf dem Effekt, dass die Wahrnehmung des Menschen lose Punkte zu ähnlichen Strukturen wie bei magnetischen Feldlinien verbindet.
+
+Bilder wie Paen (1973) zeigen Aneinanderreihungen von vertikalen Streifen unterschiedlicher Färbung, von denen beim Betrachten Streifengruppen in einem ständigen Wechsel fokussiert werden und wieder in den Hintergrund treten. In Zing 1 (1971) wechseln sich rote, blaue und grüne Streifen, abschnittsweise diagonal – wie reflektiertes Licht – innerhalb von vertikalen Balken ab, so dass horizontale Segmente hervorzutreten scheinen.
+
+Ihre überwiegend großformatigen Werke entstehen in einem mehrere Monate dauernden Schaffensprozess. Dabei fertigt sie zunächst kleinformatige Studien an, um sich deren Wirkung zu versichern. Die Farben, die eine wichtige Rolle für die Wirkung ihrer späteren Werke ausmachen, mischt sie selbst. Ein bereits großformatiger Prototyp wird mit Gouache erstellt. Das endgültige Bild entsteht schließlich auf einer Leinwand, die sie liniert, mit Acrylfarbe grundiert, und schließlich per Hand – zuweilen mit der Hilfe von Assistenten – mit Ölfarbe bemalt. Dabei ist hohe Präzision gefragt, da selbst kleine geometrische oder farbliche Ungenauigkeiten den optischen Effekt beeinträchtigen können.

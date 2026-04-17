@@ -1,0 +1,9 @@
+pydub
+requests
+python-dotenv
+fastapi
+uvicorn
+python-multipart
+chromadb
+sentence-transformers
+pydub
