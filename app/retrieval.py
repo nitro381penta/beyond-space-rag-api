@@ -105,40 +105,17 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
                 return item
 
     direct_aliases = [
-        ("yabla", [
-            "yabla", "jabla", "jableh", "jabloh", "jablo", "yable", "yableh"
-        ]),
-        ("boglari", [
-            "boglar i", "boglar", "boglár", "boglar eins", "boglar 1",
-            "bukla", "bukla eins", "bukla 1", "bogla", "bogla eins", "bogla 1"
-        ]),
-        ("kreisel", [
-            "kreisel"
-        ]),
-        ("klepsydra", [
-            "klepsydra", "klepsydra 1", "klepsydra eins", "klepsydra one"
-        ]),
-        ("shihli", [
-            "shih li", "shih-li", "shihli"
-        ]),
-        ("zittern", [
-            "zittern"
-        ]),
-        ("farbbewegung", [
-            "farbbewegung 4 64", "farbbewegung 4-64", "farbbewegung 4.64", "4 64", "4-64", "4.64"
-        ]),
-        ("spaetesleuchten", [
-            "spätes leuchten", "spaetes leuchten", "warmes leuchten"
-        ]),
-        ("abstossendeanziehung", [
-            "abstoßende anziehung", "abstossende anziehung"
-        ]),
-        ("fluechtigebewegung", [
-            "flüchtige bewegung", "fluechtige bewegung"
-        ]),
-        ("imschwarzenkreis", [
-            "im schwarzen kreis", "in den schwarzen kreis", "schwarzen kreis", "der schwarze kreis"
-        ]),
+        ("yabla", ["yabla", "jabla", "jableh", "jabloh", "jablo", "yable", "yableh"]),
+        ("boglari", ["boglar i", "boglar", "boglár", "boglar eins", "boglar 1", "boklar", "boklar eins", "boklar 1", "bukla", "bukla eins", "bukla 1", "bogla", "bogla eins", "bogla 1"]),
+        ("kreisel", ["kreisel"]),
+        ("klepsydra", ["klepsydra", "klepsydra 1", "klepsydra eins", "klepsydra one"]),
+        ("shihli", ["shih li", "shih-li", "shihli"]),
+        ("zittern", ["zittern"]),
+        ("farbbewegung", ["farbbewegung 4 64", "farbbewegung 4-64", "farbbewegung 4.64", "4 64", "4-64", "4.64"]),
+        ("spaetesleuchten", ["spätes leuchten", "spaetes leuchten", "warmes leuchten"]),
+        ("abstossendeanziehung", ["abstoßende anziehung", "abstossende anziehung"]),
+        ("fluechtigebewegung", ["flüchtige bewegung", "fluechtige bewegung"]),
+        ("imschwarzenkreis", ["im schwarzen kreis", "in den schwarzen kreis", "schwarzen kreis", "der schwarze kreis"]),
     ]
 
     compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
@@ -233,9 +210,37 @@ def parse_query_intent(query: str) -> dict:
     return intent
 
 
+def get_chunks_for_source(source: str, limit: int = 4) -> list[dict]:
+    collection = get_collection()
+    results = collection.get(where={"source": source})
+
+    ids = results.get("ids", [])
+    docs = results.get("documents", [])
+    metas = results.get("metadatas", [])
+
+    chunks = []
+    for i in range(min(len(ids), len(docs), len(metas))):
+        chunks.append({
+            "id": ids[i],
+            "text": docs[i],
+            "metadata": metas[i],
+            "distance": 0.0,
+            "score": 100.0 - i,
+        })
+
+    return chunks[:limit]
+
+
 def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
     parsed = parse_query_intent(query)
     query_tokens = parsed["query_tokens"]
+
+    forced_chunks = []
+    forced_ids = set()
+
+    if parsed["best_artwork"]:
+        forced_chunks = get_chunks_for_source(parsed["best_artwork"]["source"], limit=4)
+        forced_ids = {chunk["id"] for chunk in forced_chunks}
 
     collection = get_collection()
     query_embedding = embed_texts([query])[0]
@@ -250,12 +255,16 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
     metas = results.get("metadatas", [[]])[0]
     distances = results.get("distances", [[]])[0]
 
-    chunks = []
+    chunks = list(forced_chunks)
 
     for i in range(len(ids)):
         meta = metas[i] if i < len(metas) else {}
         text = docs[i] if i < len(docs) else ""
         distance = distances[i] if i < len(distances) else 999.0
+        chunk_id = ids[i]
+
+        if chunk_id in forced_ids:
+            continue
 
         source = meta.get("source", "")
         category = meta.get("category", "")
@@ -292,7 +301,7 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
             score -= 0.3
 
         chunks.append({
-            "id": ids[i],
+            "id": chunk_id,
             "text": text,
             "metadata": meta,
             "distance": distance,
