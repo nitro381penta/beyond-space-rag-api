@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: museum-ai-backend
-    env: docker
-    plan: starter
-    disk:
-      name: museum-ai-disk
-      mountPath: /var/data
-      sizeGB: 5
