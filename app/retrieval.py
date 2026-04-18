@@ -1,7 +1,8 @@
 import re
+from pathlib import Path
 from typing import Optional
 
-from app.config import RAG_TOP_K, DOCS_PATH
+from app.config import RAG_TOP_K, DOCS_PATH, CHUNK_SIZE, CHUNK_OVERLAP
 from app.rag_index import get_collection, list_markdown_files
 from app.embeddings import embed_texts
 
@@ -210,25 +211,50 @@ def parse_query_intent(query: str) -> dict:
     return intent
 
 
-def get_chunks_for_source(source: str, limit: int = 4) -> list[dict]:
-    collection = get_collection()
-    results = collection.get(where={"source": source})
-
-    ids = results.get("ids", [])
-    docs = results.get("documents", [])
-    metas = results.get("metadatas", [])
+def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+    text = text.strip()
+    if not text:
+        return []
 
     chunks = []
-    for i in range(min(len(ids), len(docs), len(metas))):
-        chunks.append({
-            "id": ids[i],
-            "text": docs[i],
-            "metadata": metas[i],
+    start = 0
+
+    while start < len(text):
+        end = min(start + chunk_size, len(text))
+        chunk = text[start:end].strip()
+        if chunk:
+            chunks.append(chunk)
+        if end >= len(text):
+            break
+        start = max(end - overlap, start + 1)
+
+    return chunks
+
+
+def load_direct_source_chunks(source: str, limit: int = 4) -> list[dict]:
+    file_path = Path(DOCS_PATH) / source
+    if not file_path.exists():
+        return []
+
+    text = file_path.read_text(encoding="utf-8")
+    raw_chunks = split_into_chunks(text)
+
+    result = []
+    for idx, chunk_text in enumerate(raw_chunks[:limit]):
+        result.append({
+            "id": f"direct::{source}::{idx}",
+            "text": chunk_text,
+            "metadata": {
+                "source": source,
+                "category": source.split("/")[0] if "/" in source else "unknown",
+                "filename": file_path.stem,
+                "chunk_index": idx,
+            },
             "distance": 0.0,
-            "score": 100.0 - i,
+            "score": 100.0 - idx,
         })
 
-    return chunks[:limit]
+    return result
 
 
 def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
@@ -239,8 +265,12 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
     forced_ids = set()
 
     if parsed["best_artwork"]:
-        forced_chunks = get_chunks_for_source(parsed["best_artwork"]["source"], limit=4)
+        forced_source = parsed["best_artwork"]["source"]
+        forced_chunks = load_direct_source_chunks(forced_source, limit=4)
         forced_ids = {chunk["id"] for chunk in forced_chunks}
+        print(f"=== DIRECT ARTWORK MATCH === {forced_source}")
+    else:
+        print("=== DIRECT ARTWORK MATCH === None")
 
     collection = get_collection()
     query_embedding = embed_texts([query])[0]
