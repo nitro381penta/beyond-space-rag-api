@@ -42,8 +42,15 @@ def build_knowledge_catalog():
     catalog = {"artists": [], "artworks": [], "general": [], "tour": []}
 
     for file_path in files:
-        rel_path = file_path.replace("\\", "/").split("/data/docs/")[-1]
-        category = rel_path.split("/")[0]
+        file_path_normalized = file_path.replace("\\", "/")
+        docs_path_normalized = DOCS_PATH.replace("\\", "/").rstrip("/")
+
+        if file_path_normalized.startswith(docs_path_normalized + "/"):
+            rel_path = file_path_normalized[len(docs_path_normalized) + 1:]
+        else:
+            rel_path = file_path_normalized.split("/data/docs/")[-1]
+
+        category = rel_path.split("/")[0] if "/" in rel_path else "unknown"
         filename = rel_path.split("/")[-1].replace(".md", "")
 
         item = {
@@ -99,6 +106,10 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
     q = query.lower()
     compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
 
+    print("=== MATCH DEBUG query ===", q)
+    print("=== MATCH DEBUG compact ===", compact_query)
+    print("=== MATCH DEBUG artworks ===", [item["filename"] for item in catalog_artworks])
+
     # Harte Direktregel für Im schwarzen Kreis
     if (
         "im schwarzen kreis" in q
@@ -106,6 +117,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         or "imschwarzenkreis" in compact_query
         or "schwarzenkreis" in compact_query
     ):
+        print("=== MATCH DEBUG === hard match: Im schwarzen Kreis")
         return {
             "source": "artworks/kandinsky_im_schwarzen_kreis.md",
             "filename": "kandinsky_im_schwarzen_kreis",
@@ -122,6 +134,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         or "boglari" in compact_query
         or "boklareins" in compact_query
     ):
+        print("=== MATCH DEBUG === hard match: Boglar I")
         return {
             "source": "artworks/vasarely_boglarI.md",
             "filename": "vasarely_boglarI",
@@ -132,6 +145,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
 
     # Harte Direktregel für Yabla
     if "yabla" in q or "jabla" in q or "jableh" in q:
+        print("=== MATCH DEBUG === hard match: Yabla")
         return {
             "source": "artworks/vasarely_yabla.md",
             "filename": "vasarely_yabla",
@@ -145,6 +159,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         for item in catalog_artworks:
             filename = item["filename"].lower()
             if special_code in filename:
+                print("=== MATCH DEBUG === code match:", item["source"])
                 return item
 
     direct_aliases = [
@@ -173,22 +188,31 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
             filename_compact = re.sub(r"[^a-z0-9äöüß]", "", item["filename"].lower())
 
             if key == "kreisel" and "kreisel" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "klepsydra" and "klepsydra" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "shihli" and "shihli" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "zittern" and "zittern" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "farbbewegung" and "farbbewegung" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "spaetesleuchten" and "spaetes" in filename_compact and "leuchten" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "abstossendeanziehung" and "abstossende" in filename_compact and "anziehung" in filename_compact:
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
             if key == "fluechtigebewegung" and ("fluechtige" in filename_compact or "fluchtige" in filename_compact):
+                print("=== MATCH DEBUG === alias match:", item["source"])
                 return item
 
+    print("=== MATCH DEBUG === no direct artwork match")
     return None
 
 
@@ -265,6 +289,7 @@ def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CH
 def load_direct_source_chunks(source: str, limit: int = 4) -> list[dict]:
     file_path = Path(DOCS_PATH) / source
     if not file_path.exists():
+        print("=== DIRECT SOURCE LOAD FAILED ===", str(file_path))
         return []
 
     text = file_path.read_text(encoding="utf-8")
