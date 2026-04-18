@@ -1,5 +1,4 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from contextlib import asynccontextmanager
 
 from app.schemas import AskResponse
 from app.stt_elevenlabs import transcribe_audio
@@ -9,20 +8,9 @@ from app.llm_remote import generate_answer
 from app.tts_elevenlabs import synthesize_speech
 from app.rag_index import get_collection
 from app.query_normalizer import normalize_query
-from app.embeddings import preload_embedding_model
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    print("=== STARTUP ===")
-    print("Preloading embedding model...")
-    preload_embedding_model()
-    print("Embedding model loaded.")
-    yield
-    print("=== SHUTDOWN ===")
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 @app.get("/health")
