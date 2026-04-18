@@ -14,9 +14,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Modell schon im Image cachen
+# Embedding-Modell schon im Image cachen
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
 
 COPY . .
+
+# Chroma-Ordner anlegen und Index im Image erzeugen
+RUN mkdir -p data/chroma && python scripts/build_index.py
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "10000"]
