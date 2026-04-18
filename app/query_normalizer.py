@@ -65,6 +65,7 @@ def normalize_query(text: str) -> str:
 
     # Boglar I / häufige STT-Fehler
     q = re.sub(r"\bbukla\b", "boglar", q)
+    q = re.sub(r"\bbugla\b", "boglar", q)
     q = re.sub(r"\bbogla\b", "boglar", q)
     q = re.sub(r"\bboklar\b", "boglar", q)
     q = re.sub(r"\bboglár\b", "boglar", q)
@@ -76,6 +77,8 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\bboklar 1\b", "boglar i", q)
     q = re.sub(r"\bbukla eins\b", "boglar i", q)
     q = re.sub(r"\bbukla 1\b", "boglar i", q)
+    q = re.sub(r"\bbugla eins\b", "boglar i", q)
+    q = re.sub(r"\bbugla 1\b", "boglar i", q)
     q = re.sub(r"\bboglar one\b", "boglar i", q)
     q = re.sub(r"\bboklar one\b", "boglar i", q)
 
