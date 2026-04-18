@@ -99,18 +99,22 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
     q = query.lower()
     compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
 
-    # Harte Direktregeln für besonders wichtige/problematische Werke
+    # Harte Direktregel für Im schwarzen Kreis
     if (
         "im schwarzen kreis" in q
         or "schwarzen kreis" in q
         or "imschwarzenkreis" in compact_query
         or "schwarzenkreis" in compact_query
     ):
-        for item in catalog_artworks:
-            filename = item["filename"].lower()
-            if filename == "kandinsky_im_schwarzen_kreis" or "im_schwarzen_kreis" in filename:
-                return item
+        return {
+            "source": "artworks/kandinsky_im_schwarzen_kreis.md",
+            "filename": "kandinsky_im_schwarzen_kreis",
+            "tokens": tokenize("kandinsky_im_schwarzen_kreis"),
+            "category": "artworks",
+            "match_score": 1.0,
+        }
 
+    # Harte Direktregel für Boglar I
     if (
         "boglar i" in q
         or "boglar eins" in q
@@ -118,16 +122,23 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         or "boglari" in compact_query
         or "boklareins" in compact_query
     ):
-        for item in catalog_artworks:
-            filename = item["filename"].lower()
-            if "boglar" in filename:
-                return item
+        return {
+            "source": "artworks/vasarely_boglarI.md",
+            "filename": "vasarely_boglarI",
+            "tokens": tokenize("vasarely_boglarI"),
+            "category": "artworks",
+            "match_score": 1.0,
+        }
 
+    # Harte Direktregel für Yabla
     if "yabla" in q or "jabla" in q or "jableh" in q:
-        for item in catalog_artworks:
-            filename = item["filename"].lower()
-            if "yabla" in filename:
-                return item
+        return {
+            "source": "artworks/vasarely_yabla.md",
+            "filename": "vasarely_yabla",
+            "tokens": tokenize("vasarely_yabla"),
+            "category": "artworks",
+            "match_score": 1.0,
+        }
 
     special_code = extract_special_artwork_code(q)
     if special_code:
