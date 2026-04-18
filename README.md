@@ -3,15 +3,8 @@
 AI-powered RAG backend for *A Guide Beyond Space*, an interactive museum experience combining voice input, retrieval-augmented generation, and spoken answers for artwork-related questions.
 
 ## Overview
-
 `beyond-space-rag-api` is a FastAPI backend that powers the conversational AI layer of *A Guide Beyond Space*. It processes spoken visitor questions, retrieves relevant context from a curated knowledge base of artists and artworks, generates grounded answers, and returns both text and audio output.
-
 The system is designed for museum-style interactions, where answers should remain concise, context-based, and suitable for spoken playback.
-
-## Project Context
-
-This backend is part of the Unity-based interactive museum experience A Guide Beyond Space.
-It supports a conversational guide character that can answer visitor questions about artworks, artists, and exhibition context.
 
 ## Features
 - speech-to-text via ElevenLabs
