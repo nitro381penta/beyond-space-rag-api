@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 from app.config import RAG_TOP_K, DOCS_PATH, CHUNK_SIZE, CHUNK_OVERLAP
-from app.rag_index import get_collection, list_markdown_files
+from app.rag_index import get_collection
 from app.embeddings import embed_texts
 
 
@@ -37,235 +37,6 @@ def overlap_score(query_tokens: list[str], candidate_tokens: list[str]) -> float
     return len(overlap) / max(len(c), 1)
 
 
-def build_knowledge_catalog():
-    files = list_markdown_files(DOCS_PATH)
-    catalog = {"artists": [], "artworks": [], "general": [], "tour": []}
-
-    for file_path in files:
-        file_path_normalized = file_path.replace("\\", "/")
-        docs_path_normalized = DOCS_PATH.replace("\\", "/").rstrip("/")
-
-        if file_path_normalized.startswith(docs_path_normalized + "/"):
-            rel_path = file_path_normalized[len(docs_path_normalized) + 1:]
-        else:
-            rel_path = file_path_normalized.split("/data/docs/")[-1]
-
-        category = rel_path.split("/")[0] if "/" in rel_path else "unknown"
-        filename = rel_path.split("/")[-1].replace(".md", "")
-
-        item = {
-            "source": rel_path,
-            "filename": filename,
-            "tokens": tokenize(filename),
-            "category": category,
-        }
-
-        if category in catalog:
-            catalog[category].append(item)
-
-    return catalog
-
-
-def detect_best_match(query: str, catalog_items: list[dict]):
-    query_tokens = normalize_tokens(tokenize(query))
-    best_item = None
-    best_score = 0.0
-
-    for item in catalog_items:
-        score = overlap_score(query_tokens, item["tokens"])
-        if score > best_score:
-            best_score = score
-            best_item = item
-
-    if best_item and best_score >= 0.3:
-        return {**best_item, "match_score": best_score}
-    return None
-
-
-def extract_special_artwork_code(query: str) -> Optional[str]:
-    q = query.lower()
-
-    patterns = [
-        r"\bb\s*\.?\s*13\b",
-        r"\bb\s*\.?\s*15\b",
-        r"\be\s*\.?\s*37\b",
-        r"\be\s*\.?\s*47\b",
-    ]
-
-    for pattern in patterns:
-        m = re.search(pattern, q)
-        if m:
-            raw = m.group(0)
-            cleaned = re.sub(r"[^a-zA-Z0-9]", "", raw).lower()
-            return cleaned
-
-    return None
-
-
-def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optional[dict]:
-    q = query.lower()
-    compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
-
-    print("=== MATCH DEBUG query ===", q)
-    print("=== MATCH DEBUG compact ===", compact_query)
-    print("=== MATCH DEBUG artworks ===", [item["filename"] for item in catalog_artworks])
-
-    # Harte Direktregel für Im schwarzen Kreis
-    if (
-        "im schwarzen kreis" in q
-        or "schwarzen kreis" in q
-        or "imschwarzenkreis" in compact_query
-        or "schwarzenkreis" in compact_query
-    ):
-        print("=== MATCH DEBUG === hard match: Im schwarzen Kreis")
-        return {
-            "source": "artworks/kandinsky_im_schwarzen_kreis.md",
-            "filename": "kandinsky_im_schwarzen_kreis",
-            "tokens": tokenize("kandinsky_im_schwarzen_kreis"),
-            "category": "artworks",
-            "match_score": 1.0,
-        }
-
-    # Harte Direktregel für Boglar I
-    if (
-        "boglar i" in q
-        or "boglar eins" in q
-        or "boklar eins" in q
-        or "boglari" in compact_query
-        or "boklareins" in compact_query
-    ):
-        print("=== MATCH DEBUG === hard match: Boglar I")
-        return {
-            "source": "artworks/vasarely_boglarI.md",
-            "filename": "vasarely_boglarI",
-            "tokens": tokenize("vasarely_boglarI"),
-            "category": "artworks",
-            "match_score": 1.0,
-        }
-
-    # Harte Direktregel für Yabla
-    if "yabla" in q or "jabla" in q or "jableh" in q:
-        print("=== MATCH DEBUG === hard match: Yabla")
-        return {
-            "source": "artworks/vasarely_yabla.md",
-            "filename": "vasarely_yabla",
-            "tokens": tokenize("vasarely_yabla"),
-            "category": "artworks",
-            "match_score": 1.0,
-        }
-
-    special_code = extract_special_artwork_code(q)
-    if special_code:
-        for item in catalog_artworks:
-            filename = item["filename"].lower()
-            if special_code in filename:
-                print("=== MATCH DEBUG === code match:", item["source"])
-                return item
-
-    direct_aliases = [
-        ("kreisel", ["kreisel"]),
-        ("klepsydra", ["klepsydra", "klepsydra 1", "klepsydra eins", "klepsydra one"]),
-        ("shihli", ["shih li", "shih-li", "shihli"]),
-        ("zittern", ["zittern"]),
-        ("farbbewegung", ["farbbewegung 4 64", "farbbewegung 4-64", "farbbewegung 4.64", "4 64", "4-64", "4.64"]),
-        ("spaetesleuchten", ["spätes leuchten", "spaetes leuchten", "warmes leuchten"]),
-        ("abstossendeanziehung", ["abstoßende anziehung", "abstossende anziehung"]),
-        ("fluechtigebewegung", ["flüchtige bewegung", "fluechtige bewegung"]),
-    ]
-
-    for key, aliases in direct_aliases:
-        alias_hit = False
-        for alias in aliases:
-            alias_compact = re.sub(r"[^a-z0-9äöüß]", "", alias.lower())
-            if alias.lower() in q or alias_compact in compact_query:
-                alias_hit = True
-                break
-
-        if not alias_hit:
-            continue
-
-        for item in catalog_artworks:
-            filename_compact = re.sub(r"[^a-z0-9äöüß]", "", item["filename"].lower())
-
-            if key == "kreisel" and "kreisel" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "klepsydra" and "klepsydra" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "shihli" and "shihli" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "zittern" and "zittern" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "farbbewegung" and "farbbewegung" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "spaetesleuchten" and "spaetes" in filename_compact and "leuchten" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "abstossendeanziehung" and "abstossende" in filename_compact and "anziehung" in filename_compact:
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-            if key == "fluechtigebewegung" and ("fluechtige" in filename_compact or "fluchtige" in filename_compact):
-                print("=== MATCH DEBUG === alias match:", item["source"])
-                return item
-
-    print("=== MATCH DEBUG === no direct artwork match")
-    return None
-
-
-def parse_query_intent(query: str) -> dict:
-    query_tokens = normalize_tokens(tokenize(query))
-    catalog = build_knowledge_catalog()
-
-    best_artist = detect_best_match(query, catalog["artists"])
-    best_artwork = detect_best_match(query, catalog["artworks"])
-    best_general = detect_best_match(query, catalog["general"])
-
-    direct_artwork_match = find_direct_artwork_match(query, catalog["artworks"])
-    if direct_artwork_match:
-        best_artwork = {**direct_artwork_match, "match_score": 1.0}
-
-    intent = {
-        "query_tokens": query_tokens,
-        "best_artist": best_artist,
-        "best_artwork": best_artwork,
-        "best_general": best_general,
-        "prefers_artworks": False,
-        "prefers_artists": False,
-        "prefers_general": False,
-    }
-
-    if any(w in query_tokens for w in [
-        "jahr", "wann", "gemalt", "entstanden", "entstand",
-        "erschienen", "erschien", "werk", "bild", "titel"
-    ]):
-        intent["prefers_artworks"] = True
-
-    if any(w in query_tokens for w in [
-        "künstler", "maler", "biografie", "lebte", "lebt",
-        "geboren", "starb", "gestorben"
-    ]):
-        intent["prefers_artists"] = True
-
-    if any(w in query_tokens for w in [
-        "op", "art", "space", "age", "wahrnehmung",
-        "abstraktion", "stil", "bedeutung", "dimension"
-    ]):
-        intent["prefers_general"] = True
-
-    if best_artwork:
-        intent["prefers_artworks"] = True
-    elif best_artist:
-        intent["prefers_artists"] = True
-    elif best_general:
-        intent["prefers_general"] = True
-
-    return intent
-
-
 def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     text = text.strip()
     if not text:
@@ -284,6 +55,39 @@ def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CH
         start = max(end - overlap, start + 1)
 
     return chunks
+
+
+def get_forced_artwork_source(query: str) -> Optional[str]:
+    q = query.lower()
+    compact = re.sub(r"[^a-z0-9äöüß]", "", q)
+
+    forced_map = [
+        (["im schwarzen kreis", "schwarzen kreis", "imschwarzenkreis", "schwarzenkreis"], "artworks/kandinsky_im_schwarzen_kreis.md"),
+        (["boglar i", "boglar eins", "boglari"], "artworks/vasarely_boglarI.md"),
+        (["yabla"], "artworks/vasarely_yabla.md"),
+        (["klepsydra", "klepsydra1"], "artworks/riley_klepsydra_1.md"),
+        (["kreisel"], "artworks/wenstrup_kreisel.md"),
+        (["b13"], "artworks/fangor_b13.md"),
+        (["b15"], "artworks/fangor_b15.md"),
+        (["e37"], "artworks/fangor_e37.md"),
+        (["e47"], "artworks/fangor_e47.md"),
+        (["shihli"], "artworks/riley_shih-li.md"),
+        (["zittern"], "artworks/riley_zittern.md"),
+        (["farbbewegung"], "artworks/andrade_farbbewegung.md"),
+        (["abstossende anziehung", "abstossendeanziehung"], "artworks/stanczak_abstossende_anziehung.md"),
+        (["fluechtige bewegung", "fluechtigebewegung"], "artworks/stanczak_fluechtige_bewegung.md"),
+        (["spaetes leuchten", "spaetesleuchten"], "artworks/stanczak_spaetes_leuchten.md"),
+    ]
+
+    for aliases, source in forced_map:
+        for alias in aliases:
+            alias_compact = re.sub(r"[^a-z0-9äöüß]", "", alias.lower())
+            if alias.lower() in q or alias_compact in compact:
+                print(f"=== DIRECT ARTWORK MATCH === {source}")
+                return source
+
+    print("=== DIRECT ARTWORK MATCH === None")
+    return None
 
 
 def load_direct_source_chunks(source: str, limit: int = 4) -> list[dict]:
@@ -314,19 +118,11 @@ def load_direct_source_chunks(source: str, limit: int = 4) -> list[dict]:
 
 
 def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
-    parsed = parse_query_intent(query)
-    query_tokens = parsed["query_tokens"]
+    query_tokens = normalize_tokens(tokenize(query))
 
-    forced_chunks = []
-    forced_ids = set()
-
-    if parsed["best_artwork"]:
-        forced_source = parsed["best_artwork"]["source"]
-        forced_chunks = load_direct_source_chunks(forced_source, limit=4)
-        forced_ids = {chunk["id"] for chunk in forced_chunks}
-        print(f"=== DIRECT ARTWORK MATCH === {forced_source}")
-    else:
-        print("=== DIRECT ARTWORK MATCH === None")
+    forced_source = get_forced_artwork_source(query)
+    forced_chunks = load_direct_source_chunks(forced_source, limit=4) if forced_source else []
+    forced_ids = {chunk["id"] for chunk in forced_chunks}
 
     collection = get_collection()
     query_embedding = embed_texts([query])[0]
@@ -365,26 +161,11 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
         score += overlap_score(query_tokens, source_tokens) * 1.5
         score += overlap_score(query_tokens, text_tokens) * 1.2
 
-        if parsed["best_artwork"] and source == parsed["best_artwork"]["source"]:
+        if forced_source and source == forced_source:
             score += 8.0
-        if parsed["best_artist"] and source == parsed["best_artist"]["source"]:
-            score += 3.0
-        if parsed["best_general"] and source == parsed["best_general"]["source"]:
-            score += 2.0
 
-        if parsed["prefers_artworks"] and category == "artworks":
-            score += 3.0
-        if parsed["prefers_artworks"] and category == "artists":
-            score -= 1.5
-
-        if parsed["prefers_artists"] and category == "artists":
-            score += 2.0
-
-        if parsed["prefers_general"] and category == "general":
-            score += 1.5
-
-        if category == "tour":
-            score -= 0.3
+        if category == "artworks":
+            score += 1.0
 
         chunks.append({
             "id": chunk_id,
