@@ -15,9 +15,9 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\bim im\b", "im", q)
     q = re.sub(r"\bwassily wassily\b", "wassily", q)
 
-    # ---------------------------------
+  
     # Künstlernamen / bekannte Varianten
-    # ---------------------------------
+   
     q = re.sub(r"\bfango\b", "fangor", q)
     q = re.sub(r"\bvojtech\b", "wojciech", q)
     q = re.sub(r"\bvojte[ch]?\b", "wojciech", q)
@@ -30,9 +30,8 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\bwenstrüp\b", "wenstrup", q)
     q = re.sub(r"\bbenstrup\b", "wenstrup", q)
 
-    # ---------------------------------
+ 
     # Werktitel / problematische STT-Fälle
-    # ---------------------------------
 
     # Yabla
     q = re.sub(r"\bjabla\b", "yabla", q)
@@ -56,10 +55,9 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\b4\.64\b", "4-64", q)
     q = re.sub(r"\b4 64\b", "4-64", q)
 
-    # ---------------------------------
-    # Fangor-Codes robust machen
-    # ---------------------------------
 
+    # Fangor-Codes
+    
     # "beat 13" -> "b13"
     q = re.sub(r"\bbeat\s*\.?\s*13\b", "b13", q)
     q = re.sub(r"\bbeat\s*\.?\s*15\b", "b15", q)
@@ -85,9 +83,7 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\bbe\s*15\b", "b15", q)
     q = re.sub(r"\bbi\s*15\b", "b15", q)
 
-    # ---------------------------------
-    # Aufräumen
-    # ---------------------------------
+    
     q = re.sub(r"\s+", " ", q).strip()
 
     return q

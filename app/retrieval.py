@@ -9,9 +9,9 @@ from app.embeddings import embed_texts
 STOPWORDS = {
     "was", "ist", "war", "bedeutete", "bedeutet", "die", "der", "das", "ein", "eine",
     "für", "von", "und", "in", "im", "am", "an", "zu", "zum", "zur", "den", "dem",
-    "mit", "wie", "wurde", "gemalt", "entstanden", "entstand", "welchem", "jahr", "wann",
-    "welche", "welcher", "welches", "wer", "hat", "auf", "aus", "bei", "über",
-    "sich", "man", "noch", "auch", "das", "bild", "werk", "kunstwerk"
+    "mit", "wie", "wurde", "gemalt", "entstanden", "entstand", "erschienen", "erschien",
+    "welchem", "jahr", "wann", "welche", "welcher", "welches", "wer", "hat", "auf",
+    "aus", "bei", "über", "sich", "man", "noch", "auch", "bild", "werk", "kunstwerk"
 }
 
 
@@ -137,7 +137,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
             "flüchtige bewegung", "fluechtige bewegung"
         ]),
         ("imschwarzenkreis", [
-            "im schwarzen kreis", "in den schwarzen kreis", "schwarzen kreis"
+            "im schwarzen kreis", "in den schwarzen kreis", "schwarzen kreis", "der schwarze kreis"
         ]),
     ]
 
@@ -205,13 +205,22 @@ def parse_query_intent(query: str) -> dict:
         "prefers_general": False,
     }
 
-    if any(w in query_tokens for w in ["jahr", "wann", "gemalt", "entstanden", "entstand", "werk", "bild", "titel"]):
+    if any(w in query_tokens for w in [
+        "jahr", "wann", "gemalt", "entstanden", "entstand",
+        "erschienen", "erschien", "werk", "bild", "titel"
+    ]):
         intent["prefers_artworks"] = True
 
-    if any(w in query_tokens for w in ["künstler", "maler", "biografie", "lebte", "geboren", "starb", "gestorben"]):
+    if any(w in query_tokens for w in [
+        "künstler", "maler", "biografie", "lebte", "lebt",
+        "geboren", "starb", "gestorben"
+    ]):
         intent["prefers_artists"] = True
 
-    if any(w in query_tokens for w in ["op", "art", "space", "age", "wahrnehmung", "abstraktion", "stil", "bedeutung", "dimension"]):
+    if any(w in query_tokens for w in [
+        "op", "art", "space", "age", "wahrnehmung",
+        "abstraktion", "stil", "bedeutung", "dimension"
+    ]):
         intent["prefers_general"] = True
 
     if best_artwork:
@@ -262,18 +271,22 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
         score += overlap_score(query_tokens, text_tokens) * 1.2
 
         if parsed["best_artwork"] and source == parsed["best_artwork"]["source"]:
-            score += 6.0
+            score += 8.0
         if parsed["best_artist"] and source == parsed["best_artist"]["source"]:
             score += 3.0
         if parsed["best_general"] and source == parsed["best_general"]["source"]:
             score += 2.0
 
         if parsed["prefers_artworks"] and category == "artworks":
-            score += 2.0
+            score += 3.0
+        if parsed["prefers_artworks"] and category == "artists":
+            score -= 1.5
+
         if parsed["prefers_artists"] and category == "artists":
-            score += 1.5
+            score += 2.0
+
         if parsed["prefers_general"] and category == "general":
-            score += 1.0
+            score += 1.5
 
         if category == "tour":
             score -= 0.3
