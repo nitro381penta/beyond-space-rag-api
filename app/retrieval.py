@@ -97,6 +97,37 @@ def extract_special_artwork_code(query: str) -> Optional[str]:
 
 def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optional[dict]:
     q = query.lower()
+    compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
+
+    # Harte Direktregeln für besonders wichtige/problematische Werke
+    if (
+        "im schwarzen kreis" in q
+        or "schwarzen kreis" in q
+        or "imschwarzenkreis" in compact_query
+        or "schwarzenkreis" in compact_query
+    ):
+        for item in catalog_artworks:
+            filename = item["filename"].lower()
+            if filename == "kandinsky_im_schwarzen_kreis" or "im_schwarzen_kreis" in filename:
+                return item
+
+    if (
+        "boglar i" in q
+        or "boglar eins" in q
+        or "boklar eins" in q
+        or "boglari" in compact_query
+        or "boklareins" in compact_query
+    ):
+        for item in catalog_artworks:
+            filename = item["filename"].lower()
+            if "boglar" in filename:
+                return item
+
+    if "yabla" in q or "jabla" in q or "jableh" in q:
+        for item in catalog_artworks:
+            filename = item["filename"].lower()
+            if "yabla" in filename:
+                return item
 
     special_code = extract_special_artwork_code(q)
     if special_code:
@@ -106,8 +137,6 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
                 return item
 
     direct_aliases = [
-        ("yabla", ["yabla", "jabla", "jableh", "jabloh", "jablo", "yable", "yableh"]),
-        ("boglari", ["boglar i", "boglar", "boglár", "boglar eins", "boglar 1", "boklar", "boklar eins", "boklar 1", "bukla", "bukla eins", "bukla 1", "bogla", "bogla eins", "bogla 1"]),
         ("kreisel", ["kreisel"]),
         ("klepsydra", ["klepsydra", "klepsydra 1", "klepsydra eins", "klepsydra one"]),
         ("shihli", ["shih li", "shih-li", "shihli"]),
@@ -116,10 +145,7 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         ("spaetesleuchten", ["spätes leuchten", "spaetes leuchten", "warmes leuchten"]),
         ("abstossendeanziehung", ["abstoßende anziehung", "abstossende anziehung"]),
         ("fluechtigebewegung", ["flüchtige bewegung", "fluechtige bewegung"]),
-        ("imschwarzenkreis", ["im schwarzen kreis", "in den schwarzen kreis", "schwarzen kreis", "der schwarze kreis"]),
     ]
-
-    compact_query = re.sub(r"[^a-z0-9äöüß]", "", q)
 
     for key, aliases in direct_aliases:
         alias_hit = False
@@ -135,10 +161,6 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
         for item in catalog_artworks:
             filename_compact = re.sub(r"[^a-z0-9äöüß]", "", item["filename"].lower())
 
-            if key == "yabla" and "yabla" in filename_compact:
-                return item
-            if key == "boglari" and "boglar" in filename_compact:
-                return item
             if key == "kreisel" and "kreisel" in filename_compact:
                 return item
             if key == "klepsydra" and "klepsydra" in filename_compact:
@@ -154,8 +176,6 @@ def find_direct_artwork_match(query: str, catalog_artworks: list[dict]) -> Optio
             if key == "abstossendeanziehung" and "abstossende" in filename_compact and "anziehung" in filename_compact:
                 return item
             if key == "fluechtigebewegung" and ("fluechtige" in filename_compact or "fluchtige" in filename_compact):
-                return item
-            if key == "imschwarzenkreis" and "schwarzen" in filename_compact and "kreis" in filename_compact:
                 return item
 
     return None
