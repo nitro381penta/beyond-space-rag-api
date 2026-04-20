@@ -12,7 +12,7 @@ STOPWORDS = {
     "für", "von", "und", "in", "im", "am", "an", "zu", "zum", "zur", "den", "dem",
     "mit", "wie", "wurde", "gemalt", "entstanden", "entstand", "erschienen", "erschien",
     "welchem", "jahr", "wann", "welche", "welcher", "welches", "wer", "hat", "auf",
-    "aus", "bei", "über", "sich", "man", "noch", "auch", "bild", "werk", "kunstwerk"
+    "aus", "bei", "über", "sich", "man", "noch", "auch", "bild", "werk", "kunstwerk",
 }
 
 
@@ -29,15 +29,22 @@ def normalize_tokens(tokens: list[str]) -> list[str]:
 def overlap_score(query_tokens: list[str], candidate_tokens: list[str]) -> float:
     if not query_tokens or not candidate_tokens:
         return 0.0
+
     q = set(query_tokens)
     c = set(candidate_tokens)
     overlap = q.intersection(c)
+
     if not overlap:
         return 0.0
+
     return len(overlap) / max(len(c), 1)
 
 
-def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
+def split_into_chunks(
+    text: str,
+    chunk_size: int = CHUNK_SIZE,
+    overlap: int = CHUNK_OVERLAP,
+) -> list[str]:
     text = text.strip()
     if not text:
         return []
@@ -50,20 +57,29 @@ def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CH
         chunk = text[start:end].strip()
         if chunk:
             chunks.append(chunk)
+
         if end >= len(text):
             break
+
         start = max(end - overlap, start + 1)
 
     return chunks
 
 
-def get_forced_artwork_source(query: str) -> Optional[str]:
+def get_forced_source(query: str) -> Optional[str]:
     q = query.lower()
     compact = re.sub(r"[^a-z0-9äöüß]", "", q)
 
     forced_map = [
-        (["im schwarzen kreis", "schwarzen kreis", "imschwarzenkreis", "schwarzenkreis"], "artworks/kandinsky_im_schwarzen_kreis.md"),
-        (["boglar i", "boglar eins", "boglari"], "artworks/vasarely_boglarI.md"),
+        # artworks
+        (
+            ["im schwarzen kreis", "schwarzen kreis", "imschwarzenkreis", "schwarzenkreis"],
+            "artworks/kandinsky_im_schwarzen_kreis.md",
+        ),
+        (
+            ["boglar i", "boglar eins", "boglari", "boglar1"],
+            "artworks/vasarely_boglarI.md",
+        ),
         (["yabla"], "artworks/vasarely_yabla.md"),
         (["klepsydra", "klepsydra1"], "artworks/riley_klepsydra_1.md"),
         (["kreisel"], "artworks/wenstrup_kreisel.md"),
@@ -71,22 +87,61 @@ def get_forced_artwork_source(query: str) -> Optional[str]:
         (["b15"], "artworks/fangor_b15.md"),
         (["e37"], "artworks/fangor_e37.md"),
         (["e47"], "artworks/fangor_e47.md"),
-        (["shihli"], "artworks/riley_shih-li.md"),
+        (["shihli", "shih-li"], "artworks/riley_shih-li.md"),
         (["zittern"], "artworks/riley_zittern.md"),
-        (["farbbewegung"], "artworks/andrade_farbbewegung.md"),
-        (["abstossende anziehung", "abstossendeanziehung"], "artworks/stanczak_abstossende_anziehung.md"),
-        (["fluechtige bewegung", "fluechtigebewegung"], "artworks/stanczak_fluechtige_bewegung.md"),
-        (["spaetes leuchten", "spaetesleuchten"], "artworks/stanczak_spaetes_leuchten.md"),
+        (["farbbewegung", "464", "4-64"], "artworks/andrade_farbbewegung.md"),
+        (
+            ["abstossende anziehung", "abstossendeanziehung"],
+            "artworks/stanczak_abstossende_anziehung.md",
+        ),
+        (
+            ["fluechtige bewegung", "fluechtigebewegung"],
+            "artworks/stanczak_fluechtige_bewegung.md",
+        ),
+        (
+            ["spaetes leuchten", "spaetesleuchten"],
+            "artworks/stanczak_spaetes_leuchten.md",
+        ),
+
+        # artists
+        (
+            ["victor vasarely", "vasarely"],
+            "artists/vasarely.md",
+        ),
+        (
+            ["wojciech fangor", "fangor"],
+            "artists/fangor.md",
+        ),
+        (
+            ["bridget riley", "riley"],
+            "artists/riley.md",
+        ),
+        (
+            ["wassily kandinsky", "kandinsky"],
+            "artists/kandinsky.md",
+        ),
+        (
+            ["julian stanczak", "stanczak"],
+            "artists/stanczak.md",
+        ),
+        (
+            ["margaret wenstrup", "wenstrup"],
+            "artists/wenstrup.md",
+        ),
+        (
+            ["edna andrade", "andrade"],
+            "artists/andrade.md",
+        ),
     ]
 
     for aliases, source in forced_map:
         for alias in aliases:
             alias_compact = re.sub(r"[^a-z0-9äöüß]", "", alias.lower())
             if alias.lower() in q or alias_compact in compact:
-                print(f"=== DIRECT ARTWORK MATCH === {source}")
+                print(f"=== DIRECT SOURCE MATCH === {source}")
                 return source
 
-    print("=== DIRECT ARTWORK MATCH === None")
+    print("=== DIRECT SOURCE MATCH === None")
     return None
 
 
@@ -117,10 +172,40 @@ def load_direct_source_chunks(source: str, limit: int = 4) -> list[dict]:
     return result
 
 
+def detect_query_intent(query: str) -> str:
+    q = query.lower()
+    tokens = set(normalize_tokens(tokenize(q)))
+
+    artist_markers = {
+        "lebte", "geboren", "starb", "gestorben", "biografie", "biographie",
+        "kunstler", "kuenstler", "maler", "person",
+    }
+    artwork_markers = {
+        "gemalt", "entstand", "entstanden", "jahr", "werk", "bild", "druck", "titel",
+    }
+    general_markers = {
+        "bedeutung", "stil", "wahrnehmung", "space", "age", "op", "art", "dimension",
+    }
+
+    if tokens.intersection(artist_markers):
+        return "artist"
+    if tokens.intersection(artwork_markers):
+        return "artwork"
+    if tokens.intersection(general_markers):
+        return "general"
+
+    # fallback heuristics
+    if any(name in q for name in ["vasarely", "fangor", "riley", "kandinsky", "stanczak", "wenstrup", "andrade"]):
+        return "artist"
+
+    return "unknown"
+
+
 def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
     query_tokens = normalize_tokens(tokenize(query))
+    query_intent = detect_query_intent(query)
 
-    forced_source = get_forced_artwork_source(query)
+    forced_source = get_forced_source(query)
     forced_chunks = load_direct_source_chunks(forced_source, limit=4) if forced_source else []
     forced_ids = {chunk["id"] for chunk in forced_chunks}
 
@@ -162,10 +247,26 @@ def retrieve_chunks(query: str, top_k: int = RAG_TOP_K) -> list:
         score += overlap_score(query_tokens, text_tokens) * 1.2
 
         if forced_source and source == forced_source:
-            score += 8.0
+            score += 10.0
 
-        if category == "artworks":
-            score += 1.0
+        # query intent weighting
+        if query_intent == "artist":
+            if category == "artists":
+                score += 4.0
+            elif category == "artworks":
+                score -= 1.5
+            elif category == "general":
+                score -= 0.5
+
+        elif query_intent == "artwork":
+            if category == "artworks":
+                score += 4.0
+            elif category == "artists":
+                score -= 0.5
+
+        elif query_intent == "general":
+            if category == "general":
+                score += 2.5
 
         chunks.append({
             "id": chunk_id,

@@ -8,7 +8,7 @@ from app.llm_remote import generate_answer
 from app.tts_elevenlabs import synthesize_speech
 from app.rag_index import get_collection
 from app.query_normalizer import normalize_query
-from app.spoken_text import beautify_query_for_display
+from app.spoken_text import beautify_query_for_display, normalize_for_tts
 
 
 app = FastAPI()
@@ -61,7 +61,12 @@ async def ask(audio: UploadFile = File(...)):
         print("\n=== ANSWER ===")
         print(answer_text)
 
-        audio_base64 = synthesize_speech(answer_text)
+        tts_text = normalize_for_tts(answer_text)
+
+        print("\n=== TTS TEXT ===")
+        print(tts_text)
+
+        audio_base64 = synthesize_speech(tts_text)
 
         return AskResponse(
             transcript=transcript,
