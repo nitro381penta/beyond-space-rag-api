@@ -57,6 +57,7 @@ Accepts an audio file and returns:
 pip install -r requirements.txt
 python scripts/build_index.py
 uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
 ## Health check
 http://localhost:8000/health
@@ -65,19 +66,22 @@ http://localhost:8000/health
 This project is deployed on Fly.io with Docker.
 
 ### Deploy
+```bash
 fly deploy
 Set secrets
 fly secrets set OPENAI_API_KEY=your_openai_key
 fly secrets set ELEVENLABS_API_KEY=your_elevenlabs_key
 Check secrets
 fly secrets list
+```
 
 ### Check logs
+```bash
 fly logs
+```
 
 ### Health endpoint
 https://beyond-space-rag-api.fly.dev/health
-```
 
 ## Docker
 The application is containerized with Docker and runs with Uvicorn on port 10000.
