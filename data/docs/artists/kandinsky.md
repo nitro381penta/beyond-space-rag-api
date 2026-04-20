@@ -1,13 +1,22 @@
 # Wassily Kandinsky
 
-Wassily Kandinsky[1] (russisch Василий Васильевич Кандинский, Wassili Wassiljewitsch Kandinski, wiss. Transliteration Vasilij Vasil'evič Kandinskij; * 4. Dezemberjul. / 16. Dezember 1866greg. in Moskau, Russisches Kaiserreich;[2] † 13. Dezember 1944 in Neuilly-sur-Seine, Frankreich) war ein russischer Maler, Grafiker und Kunsttheoretiker, der auch in Deutschland und Frankreich lebte und wirkte. Mit Franz Marc war er Begründer der Redaktionsgemeinschaft Der Blaue Reiter, die am 18. Dezember 1911 ihre erste Ausstellung in München eröffnete. Der Blaue Reiter ging aus der 1909 gegründeten Neuen Künstlervereinigung München (N.K.V.M.) hervor, in der Kandinsky zeitweise Vorsitzender war. In der Weimarer Republik war er als Lehrer am Bauhaus tätig.
+Name: Wassily Kandinsky
+Geboren: 16. Dezember 1866 in Moskau
+Gestorben: 13. Dezember 1944 in Neuilly-sur-Seine, Frankreich
+Fragetypen:
+- Wann lebte Wassily Kandinsky?
+- Wo lebte Wassily Kandinsky?
+- Woher kommt Wassily Kandinsky?
+- Wer ist Wassily Kandinsky?
+- Wann wurde Wassily Kandinsky geboren?
+
+Wassily Kandinsky[1] (russisch Василий Васильевич Кандинский, Wassili Wassiljewitsch Kandinski, wiss. Transliteration Vasilij Vasil'evič Kandinskij; * 16. Dezember 1866 in Moskau, Russisches Kaiserreich;[2] † 13. Dezember 1944 in Neuilly-sur-Seine, Frankreich) war ein russischer Maler, Grafiker und Kunsttheoretiker, der auch in Deutschland und Frankreich lebte und wirkte. Mit Franz Marc war er Begründer der Redaktionsgemeinschaft Der Blaue Reiter, die am 18. Dezember 1911 ihre erste Ausstellung in München eröffnete. Der Blaue Reiter ging aus der 1909 gegründeten Neuen Künstlervereinigung München (N.K.V.M.) hervor, in der Kandinsky zeitweise Vorsitzender war. In der Weimarer Republik war er als Lehrer am Bauhaus tätig.
 
 Kandinsky war ein Künstler des Expressionismus und einer der Wegbereiter der abstrakten Kunst. Er hat sich als Schöpfer des ersten abstrakten Bildes der Welt bezeichnet, das aber möglicherweise mit der Angabe des Jahres 1910 statt 1913 vordatiert ist.[3] Die neuere Forschung verweist darauf, dass im November 1906 die Malerin Hilma af Klint die erste Serie kleinformatiger abstrakter Bilder gemalt hat. Das großformatige Gemälde Die zehn Größten, Nr. 2, Kindheit, Gruppe I folgte 1907.[4]
 
 
 ### Kindheit und Ausbildung
 
-Hafen von Odessa, 1898, Tretjakow-Galerie, Moskau
 Wassily Kandinsky wurde in einer wohlhabenden Teehändlerfamilie in Moskau geboren, die aber bald nach Odessa zog. Der Vater, Wassily Silwestrowitsch Kandinsky, stammte aus Ostsibirien, die Mutter war die Moskauerin Lidija Tichejewa. Die Eltern trennten sich 1871, sodass er hauptsächlich von seiner Tante Jelisaweta Tichejewa erzogen wurde. Bis 1885 reiste er jedes Jahr mit seinem Vater in die Heimatstadt Moskau. Er erhielt Zeichen- und Malunterricht. Nach dem Abitur 1885 am humanistischen Gymnasium in Odessa begann er 1886 Rechtswissenschaften, Nationalökonomie und Ethnologie an der Lomonossow-Universität in Moskau zu studieren. Während des Studiums malte er und besuchte Kunstausstellungen.[5]
 
 1889 unternahm Kandinsky eine Expedition in das nördliche Ural-Gebirge, um dort das Rechtssystem der Syrjanen zu studieren. Ihn faszinierten die mythischen, abstrakten Bemalungen der Trommeln dieses Urvolkes. Der Einfluss dieser Eindrücke ist in Kandinskys Frühwerk deutlich zu erkennen.[6] 1892 beendete er sein Studium mit dem juristischen Staatsexamen und heiratete seine Cousine Anna Tschemjakina. Im folgenden Jahr wurde er Assistent der juristischen Fakultät an der Moskauer Universität, promovierte mit der Dissertation Über die Gesetzmäßigkeit der Arbeiterlöhne und wurde zum Attaché der juristischen Fakultät ernannt.[7]

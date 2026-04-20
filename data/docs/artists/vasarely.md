@@ -1,5 +1,15 @@
 ### Victor Vasarely
 
+Name: Victor Vasarely
+Geboren: 9. April 1906 in Pécs
+Gestorben: 15. März 1997 in Paris
+Fragetypen:
+- Wann lebte Victor Vasarely?
+- Wo lebte Victor Vasarely?
+- Woher kommt Victor Vasarely?
+- Wer ist Victor Vasarely?
+- Wann wurde Victor Vasarely geboren?
+
 Der Maler und Grafiker Victor Vasarely (geb. 1906 in Pécs/Ungarn, gest. 1997 in Paris) zählt zu den Mitbegründern der „Op-Art“. Sein Interesse konzentrierte sich auf Fragen der Wahrnehmung der räumlichen Wirkung gegenstandsloser Bilder und der Wirkung optischer Illusionen. Vasarelys 1974 auf dem Campus, im Außenbereich des Hörsaalzentrums Ost, realisierte Keramikwand besteht aus verschiedenfarbigen geometrisch geformten Keramikplatten. Die Abschnitte bestehen aus sich wiederholenden Formen, Quadraten, Dreiecken und Rechtecken. Diese setzen sich, umrahmt von schwarzen Platten und durch drei Einkerbungen unterteilt, zu vier vertikal gestreckten Oktaedern zusammen. Die innen liegenden Formen erscheinen in Kombination trotz ihrer offensichtlichen Zweidimensionalität als dreidimensionale Objekte. Ganz im Sinne der Op-Art fordert die Wand die Betrachter*innen zur aktiven Wahrnehmung heraus. Sie fordert sie auf, sich auf das Spiel mit Inversionsfiguren einzulassen. Der Akt des Sehens bringt unterschiedliche Erscheinungsformen hervor, die hin und her springen und sich nicht fixieren lassen. So erhält das Werk in der Anschauung eine besondere Dynamik.
 
 Victor Vasarely war ein ungarisch-französischer Künstler, der als Initiator der Op Art gilt und andere Vertreter dieser Bewegung wie Bridget Riley und Yaacov Agam geprägt hat. Vasarelys Gemälde und Skulpturen nutzen geometrische Formen und farbenfrohe Grafiken, um räumliche Illusion auf zweidimensionalen Oberflächen zu schaffen. Diese abstrakte Art der Malerei, auch als Kinetismus bekannt, war beeinflusst von den Prinzipien des Bauhauses und der Abstraktion Wassily Kandinskys. Besonders stark wirkte sich zudem die Konstruktivismus-Bewegung auf Vasarelys Arbeit aus. Geboren am 9. April 1906 unter dem Namen Vásárhelyi Gyozo in der ungarischen Stadt Pécs, studierte der Künstler zunächst Medizin bevor er nach zwei Jahren zur Malerei wechselte. In den späten 1920er Jahren schrieb sich Vasarely in Budapest an der Mühely-Schule für Grafik ein, die in der Tradition des Bauhauses stand. Nachdem er sich 1930 in Paris niedergelassen hatte, arbeitete Vasarely als Werbegrafiker und entwickelte seine unverkennbare abstrakte Ästhetik. Er lebte und arbeitete bis zu seinem Tod am 15. März 1997 im Alter von 90 Jahren in Paris.

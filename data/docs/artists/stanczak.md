@@ -1,5 +1,15 @@
 ### Julian Stanczak
 
+Name: Julian Stanczak
+Geboren: 5. November 1928 als Julian Stańczak nahe Borownica, Polen
+Gestorben: 25. März 2017 in Seven Hills, Ohio, Vereinigte Staaten
+Fragetypen:
+- Wann lebte Julian Stanczak?
+- Wo lebte Julian Stanczak?
+- Woher kommt Julian Stanczak?
+- Wer ist Julian Stanczak?
+- Wann wurde Julian Stanczak geboren?
+
 Julian Stańczak (POL/USA, 1928–2017) war ein Maler, Grafiker und Pädagoge, der 1950 von Europa nach Cleveland, Ohio auswanderte. Seinen BFA erwarb er am Cleveland Institute of Art; seinen MFA 1956 in Yale, wo er bei Josef Albers und Conrad Marca-Relli studierte. Als früher Vertreter der „Op Art“-Malerei anerkannt, stellte Stańczak von 1964 bis 1979 in der Martha Jackson Gallery in New York City aus.
 
 Julian Stańczaks frühes Leben war sowohl von enormen persönlichen Herausforderungen als auch von seinem Engagement für eine durch Kunst und Musik geprägte, erhebende Lebenshaltung bestimmt. 1928 in Polen geboren, wurde er während des Zweiten Weltkriegs aus dem Land vertrieben und in ein Arbeitslager geschickt. Nach seiner Flucht im Jahr 1942 reiste er durch den Nahen Osten in ein Flüchtlingslager in Ostafrika. Nach dem Krieg emigrierte er von Europa in die USA und ließ sich 1950 in Cleveland, Ohio nieder.

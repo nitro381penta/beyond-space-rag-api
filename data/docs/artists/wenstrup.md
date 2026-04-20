@@ -1,5 +1,16 @@
 ### Margaret Wenstrup
 
+Name: Margaret Wenstrup
+Geboren: 1930 in Stanford, Kentucky
+Gestorben: 2008
+Fragetypen:
+- Wann lebte Margaret Wenstrup?
+- Wo lebte Margaret Wenstrup?
+- Woher kommt Margaret Wenstrup?
+- Wer ist Margaret Wenstrup?
+- Wann wurde Margaret Wenstrup geboren?
+
+
 Margaret Wenstrup hat von 1930 bis 2008 gelebt.
 Margaret Newland Wenstrup wurde in Stanford, Kentucky, geboren. Da in ihrer ländlichen Gemeinde kein Kunstunterricht angeboten wurde, kopierte sie als Kind Bilder aus Kalendern als erste künstlerische Ausbildung. 1949 schrieb sich Margaret am John Herron Art Institute in Indianapolis, Indiana, ein. Anschließend studierte sie von 1949 bis 1953 an der Art Academy of Cincinnati. 1953 erhielt Wenstrup den renommiertesten Preis der Akademie, das Wilder-Stipendium, das sie nutzte, um bei dem Precisionisten Ralston Crawford in New York zu studieren. Crawford hatte in den 1940er Jahren an der Art Academy unterrichtet. Mit Crawford begann Wenstrup, mit geometrischer Abstraktion zu experimentieren.
 
@@ -12,7 +23,7 @@ Wenstrup wurde 1962 in die Wanderausstellung Forecast: Museum Director’s Choic
 Die Werke von Margaret Wenstrup befinden sich in folgenden renommierten Sammlungen: Cincinnati Art Museum, Ohio; Cincinnati Public Library, Ohio; Cincinnati Bell Corporation, Ohio; Chase Manhattan Bank, New York, NY; sowie im Museum of Modern Art, New York, NY.
 
 
-Wenstrup wurde 1930 in Stanford, Ky., geboren. Im Alter von 19 Jahren trat sie in die Art Academy of Cincinnati ein, wo sie in den 1950er Jahren unter lokalen Größen der modernen Kunst wie Noel Martin studierte. Wenstrup begann in jenem Cincinnati-typischen modernistischen Stil der Jahrhundertmitte zu malen, den die Ausstellung „Graphic Content“ ein ganzes Jahr lang würdigte.
+Wenstrup wurde 1930 in Stanford, Kentucky, geboren. Im Alter von 19 Jahren trat sie in die Art Academy of Cincinnati ein, wo sie in den 1950er Jahren unter lokalen Größen der modernen Kunst wie Noel Martin studierte. Wenstrup begann in jenem Cincinnati-typischen modernistischen Stil der Jahrhundertmitte zu malen, den die Ausstellung „Graphic Content“ ein ganzes Jahr lang würdigte.
 
 Doch Wenstrups Auffassung des Modernismus war nicht unbedingt so präzise wie die vieler anderer Künstler in der CAC-Ausstellung. Sie studierte Weberei in Arizona und besuchte die Arrowmont School of Arts and Crafts in Gatlinburg, Tenn. Dadurch erhielt ihre Arbeit eine deutlich volkskünstlerische Prägung.
 

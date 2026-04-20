@@ -1,5 +1,15 @@
 ### Wojciech Fangor
 
+Name: Wojciech Fangor
+Geboren: 15. November 1922 in Warschau
+Gestorben: 25. Oktober 2015 in Józefów bei Warschau
+Fragetypen:
+- Wann lebte Wojciech Fangor?
+- Wo lebte Wojciech Fangor?
+- Woher kommt Wojciech Fangor?
+- Wer ist Wojciech Fangor?
+- Wann wurde Wojciech Fangor geboren?
+
 Wojciech Fangor wird 1922 in Warschau geboren. Er gehört zu den wichtigen polnischen Künstlern des 20. Jahrhunderts und erlangt international Anerkennung. 1946 erhält Wojciech Fangor das Abschlussdiplom der Warschauer Akademie der Bildenden Künste. 1953-1961 unterrichtet er dort selbst als Dozent. Zeitgleich ist er als Illustrator für verschiedene Tageszeitungen tätig, vor allem entwirft er Plakate und wird zum Mitbegründer der Polnischen Schule für Plakatkunst. Nach seinen künstlerischen Anfängen im politisch verordneten Stil des sozialistischen Realismus, öffnet sich Wojciech Fangor Ende der 1950er Jahre den abstrakten Tendenzen der Zeit. Sein Interesse gilt der Farbfeldmalerei und es entstehen Gemälde, die der Op-Art zuzurechnen sind. Er malt anstatt mit Acrylfarben mit weicheren und satteren Ölfarben und schafft ab 1956 farbkräftig leuchtende Darstellungen verschwommener Kreise und amorpher Formgebilde mit optischem Illusionseffekt. Wojciech Fangor selbst bezeichnet diese Werke als "Positive Illusory Spaces".
 Größere Bekanntheit erlangt Wojciech Fangor in den 1960er Jahren nach seiner Übersiedelung in die USA. Das Museum of Modern Art in New York zeigt seine Werke 1961 und 1965 neben Werken von Josef Albers, Bridget Riley, Frank Stella und Victor Vasarely. 1968 nimmt Wojciech Fangor an der Biennale in Venedig teil. 1970 kuratiert das New Yorker Solomon R. Guggenheim Museum schließlich eine Einzelausstellung zu den Arbeiten des Künstlers,die ihn endgültig in den Fokus der internationalen Kunstwelt rückt. In den 1970er Jahren schafft Wojciech Fangor wieder vermehrt gegenständliche Gemälde. Nun entstehen die "Television"-Bilder, mit ihnen experimentiert der Künstler mit den visuellen Effekten, die das Medium Fernsehen erzeugt.
 1999 kehrt Wojciech Fangor nach Polen zurück, wo ihm etliche Ehrungen zuteilwerden. 2007 wird er mit der grafischen Gestaltung der Stationen der zweiten U-Bahn-Linie in Warschau beauftragt, diese Paneele werden 2014 installiert. 2008 wird dem Künstler die Gloria-Artis-Medaille für kulturelle Verdienste in Gold verliehen, 2011 erhält er das Komturkreuz mit Stern des Ordens Polonia Restituta. 2012 veranstaltet das Nationalmuseum in Krakau eine retrospektive Ausstellung der Werke des Künstlers. Wojciech Fangor verstirbt 2015 in Warschau.

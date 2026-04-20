@@ -1,6 +1,15 @@
 ### Bridget Riley
 
-Wer ist Bridget Riley?
+Name: Bridget Riley
+Geboren: 24. April 1931 in Norwood, London
+Gestorben: —
+Fragetypen:
+- Wann lebte Bridget Riley?
+- Wo lebte Bridget Riley?
+- Woher kommt Bridget Riley?
+- Wer ist Bridget Riley?
+- Wann wurde Bridget Riley geboren?
+- Wer ist Bridget Riley?
 Bridget Riley (* 24.4.1931, West Norwood) zählt zu den bedeutendsten Künstlerinnen der Op Art in Großbritannien.
 
 ## Kindheit und Ausbildung

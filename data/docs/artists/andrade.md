@@ -1,5 +1,15 @@
 ### Edna Andrade
 
+Name: Edna Andrade
+Geboren: 25. Januar 1917 in Portsmouth (New Hampshire)
+Gestorben: 17. April 2008 in Philadelphia, USA
+Fragetypen:
+- Wann lebte Edna Andrade?
+- Wo lebte Edna Andrade?
+- Woher kommt Edna Andrade?
+- Wer ist Edna Andrade?
+- Wann wurde Edna Andrade geboren?
+
 Edna wusste schon in sehr jungen Jahren, dass Kunst und Design ihre Lebensleidenschaft waren. Geboren 1917 in Portsmouth, Virginia, wurde Edna Wright bereits als kleines Mädchen mit Struktur und Gestaltung vertraut, indem sie ihrem Vater, einem Bauingenieur, dabei zusah, wie er Brücken und komplexe Konstruktionen entwarf.
 
 Nach dem Abschluss der High School zog Edna nach Philadelphia und besuchte die Pennsylvania Academy of Fine Arts. Sie erhielt ein Stipendium, um in Europa Kunst zu studieren, wo sie erstmals mit der deutschen Bauhaus-Bewegung sowie mit einer Reihe expressionistischer Maler der Zeit nach dem Ersten Weltkrieg in Berührung kam, die ihren künstlerischen Ansatz prägten.
