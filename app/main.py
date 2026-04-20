@@ -14,6 +14,65 @@ from app.spoken_text import beautify_query_for_display, normalize_for_tts
 app = FastAPI()
 
 
+def _looks_like_question(text: str) -> bool:
+    if not text:
+        return False
+
+    q = text.strip().lower()
+
+    question_starters = [
+        "wer", "was", "wann", "wo", "woher", "wie", "warum", "wieso",
+        "welcher", "welche", "welches", "von wem", "ist", "sind",
+        "kann", "koennte", "könnte", "hat", "haben"
+    ]
+
+    return any(q.startswith(starter + " ") or q == starter for starter in question_starters)
+
+
+def _is_implausible_transcript(raw_text: str, normalized_query: str) -> bool:
+    raw = (raw_text or "").strip().lower()
+    norm = (normalized_query or "").strip().lower()
+
+    if not raw or len(raw) < 6:
+        return True
+
+    obvious_gibberish = [
+        "wir haben abgetrocknet",
+        "can't leave the bridge dryly",
+        "cant leave the bridge dryly",
+        "ich bin liebti britta dreiling",
+    ]
+
+    if raw in obvious_gibberish or norm in obvious_gibberish:
+        return True
+
+    english_noise_markers = [
+        "can't", "cant", "bridge", "dryly"
+    ]
+    if sum(1 for token in english_noise_markers if token in raw) >= 2:
+        return True
+
+    if not _looks_like_question(norm):
+        return True
+
+    return False
+
+
+def _build_retry_response(transcript: str, display_text: str) -> AskResponse:
+    answer_text = (
+        "Ich konnte deine Frage akustisch nicht zuverlässig verstehen. "
+        "Bitte stelle sie noch einmal kurz und deutlich."
+    )
+    audio_base64 = synthesize_speech(normalize_for_tts(answer_text))
+
+    return AskResponse(
+        transcript=transcript,
+        display_text=display_text,
+        answer_text=answer_text,
+        audio_base64=audio_base64,
+    )
+
+
 @app.get("/health")
 def health():
     collection = get_collection()
@@ -36,6 +95,19 @@ async def ask(audio: UploadFile = File(...)):
         print(normalized_query)
         print("\n=== DISPLAY TEXT ===")
         print(display_text)
+
+        if _is_implausible_transcript(transcript, normalized_query):
+            print("\n=== STT QUALITY CHECK ===")
+            print("Transcript classified as implausible. Returning retry response.")
+
+            retry_response = _build_retry_response(transcript, display_text)
+
+            print("\n=== ANSWER ===")
+            print(retry_response.answer_text)
+            print("\n=== TTS TEXT ===")
+            print(normalize_for_tts(retry_response.answer_text))
+
+            return retry_response
 
         chunks = retrieve_chunks(normalized_query)
 
