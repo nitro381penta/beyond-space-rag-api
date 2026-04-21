@@ -68,6 +68,11 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"\bdreiling\b", "riley", q)
     q = re.sub(r"\bdryly\b", "riley", q)
     q = re.sub(r"\bdraily\b", "riley", q)
+    
+    q = re.sub(r"\bbridge dryly\b", "bridget riley", q)
+    q = re.sub(r"\bbridge riley\b", "bridget riley", q)
+    q = re.sub(r"\bbritta dryly\b", "bridget riley", q)
+    q = re.sub(r"\bbridget dryly\b", "bridget riley", q)
 
     q = re.sub(r"\bwassili\b", "wassily", q)
     q = re.sub(r"\bkandinski\b", "kandinsky", q)
@@ -159,6 +164,11 @@ def normalize_query(text: str) -> str:
     q = re.sub(r"^wurde ([a-zäöüß][a-zäöüß\s\-]+) geboren$", r"wann wurde \1 geboren", q)
     q = re.sub(r"^sagen wir,?\s*wo die ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
     q = re.sub(r"^zu welcher zeit fand das space age statt$", "wann war das space age", q)
+    q = re.sub(r"^liebte ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^lebt ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^dann lebt(?:e)? ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^dann lebt(?:e)? die ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^liebte die ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
 
     q = re.sub(r"\s+", " ", q).strip()
     return q

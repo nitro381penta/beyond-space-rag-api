@@ -33,12 +33,15 @@ def _looks_like_question(text: str) -> bool:
 def _is_implausible_transcript(
     raw_text: str,
     normalized_query: str,
-    repaired_query: str,
-    repair_confidence: float,
+    repaired_query: str = "",
+    repair_intent: str = "unknown",
+    repair_entities: list[str] | None = None,
+    repair_confidence: float = 0.0,
 ) -> bool:
     raw = (raw_text or "").strip().lower()
     norm = (normalized_query or "").strip().lower()
     repaired = (repaired_query or "").strip().lower()
+    repair_entities = repair_entities or []
 
     if not raw or len(raw) < 6:
         return True
@@ -47,8 +50,8 @@ def _is_implausible_transcript(
         "wir haben abgetrocknet",
         "can't leave the bridge dryly",
         "cant leave the bridge dryly",
-        "ich bin liebti britta dreiling",
-        "am liebste wojciech fügner",
+        "unlimited bridge to try me",
+        "am liebste wojciech fugner",
         "dann liebte wojciech van moor",
     ]
 
@@ -56,18 +59,30 @@ def _is_implausible_transcript(
         return True
 
     english_noise_markers = [
-        "can't", "cant", "bridge", "dryly"
+        "can't", "cant", "bridge", "dryly", "unlimited", "try me"
     ]
     if sum(1 for token in english_noise_markers if token in raw) >= 2:
         return True
 
-    if _looks_like_question(norm):
+    # Wenn die reparierte Anfrage klar genug ist, nicht zu früh verwerfen.
+    if repair_confidence >= 0.85 and repair_intent != "unknown":
         return False
 
-    if _looks_like_question(repaired) and repair_confidence >= 0.6:
+    # Bridget Riley 
+    if repair_intent == "artist" and "bridget riley" in repair_entities:
         return False
 
-    return True
+    if ("bridget" in repaired or "riley" in repaired) and repair_intent == "artist" and repair_confidence >= 0.5:
+        return False
+
+    # Ebenso bei klar erkannten Künstler- oder Werkfragen toleranter sein
+    if repair_intent in {"artist", "artwork", "general"} and repair_entities and repair_confidence >= 0.6:
+        return False
+
+    if not _looks_like_question(norm) and not _looks_like_question(repaired):
+        return True
+
+    return False
 
 
 def _build_retry_response(transcript: str, display_text: str) -> AskResponse:
@@ -99,42 +114,40 @@ async def ask(audio: UploadFile = File(...)):
         transcript = transcribe_audio(audio_bytes, filename=audio.filename or "audio.wav")
 
         normalized_query = normalize_query(transcript)
-        repair = repair_query(transcript, normalized_query)
+        repaired = repair_query(transcript, normalized_query)
 
         display_text = beautify_query_for_display(
             raw_text=transcript,
             normalized_query=normalized_query,
-            repaired_query=repair.repaired_text,
+            repaired_query=repaired.repaired_text,
         )
 
         print("\n=== TRANSCRIPT ===")
         print(transcript)
-
         print("\n=== NORMALIZED QUERY ===")
         print(normalized_query)
-
         print("\n=== REPAIRED QUERY ===")
-        print(repair.repaired_text)
-
+        print(repaired.repaired_text)
         print("\n=== REPAIR META ===")
         print({
-            "intent": repair.intent,
-            "entities": repair.entities,
-            "artist_entity": repair.artist_entity,
-            "artwork_entity": repair.artwork_entity,
-            "general_entity": repair.general_entity,
-            "forced_source_hint": repair.forced_source_hint,
-            "confidence": repair.confidence,
+            "intent": repaired.intent,
+            "entities": repaired.entities,
+            "artist_entity": repaired.artist_entity,
+            "artwork_entity": repaired.artwork_entity,
+            "general_entity": repaired.general_entity,
+            "forced_source_hint": repaired.forced_source_hint,
+            "confidence": repaired.confidence,
         })
-
         print("\n=== DISPLAY TEXT ===")
         print(display_text)
 
         if _is_implausible_transcript(
             raw_text=transcript,
             normalized_query=normalized_query,
-            repaired_query=repair.repaired_text,
-            repair_confidence=repair.confidence,
+            repaired_query=repaired.repaired_text,
+            repair_intent=repaired.intent,
+            repair_entities=repaired.entities,
+            repair_confidence=repaired.confidence,
         ):
             print("\n=== STT QUALITY CHECK ===")
             print("Transcript classified as implausible. Returning retry response.")
@@ -143,20 +156,19 @@ async def ask(audio: UploadFile = File(...)):
 
             print("\n=== ANSWER ===")
             print(retry_response.answer_text)
-
             print("\n=== TTS TEXT ===")
             print(normalize_for_tts(retry_response.answer_text))
 
             return retry_response
 
         chunks = retrieve_chunks(
-            query=repair.repaired_text,
-            intent_hint=repair.intent,
-            forced_source_hint=repair.forced_source_hint,
+            query=repaired.repaired_text,
+            intent_hint=repaired.intent,
+            forced_source_hint=repaired.forced_source_hint,
             entity_hints={
-                "artist": repair.artist_entity,
-                "artwork": repair.artwork_entity,
-                "general": repair.general_entity,
+                "artist": repaired.artist_entity,
+                "artwork": repaired.artwork_entity,
+                "general": repaired.general_entity,
             },
         )
 
@@ -175,17 +187,14 @@ async def ask(audio: UploadFile = File(...)):
         user_prompt = build_user_prompt(
             query=normalized_query,
             chunks=chunks,
-            repaired_query=repair.repaired_text,
-            intent=repair.intent,
+            repaired_query=repaired.repaired_text,
+            intent=repaired.intent,
         )
 
         print("\n=== USER PROMPT ===")
         print(user_prompt)
 
-        answer_text = generate_answer(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-        )
+        answer_text = generate_answer(system_prompt=system_prompt, user_prompt=user_prompt)
 
         print("\n=== ANSWER ===")
         print(answer_text)

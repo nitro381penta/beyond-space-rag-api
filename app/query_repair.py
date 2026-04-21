@@ -6,13 +6,25 @@ from typing import List, Optional
 
 def _ascii(text: str) -> str:
     return "".join(
-        c for c in unicodedata.normalize("NFKD", text or "")
+        c for c in unicodedata.normalize("NFKD", text)
         if not unicodedata.combining(c)
     ).lower()
 
 
-def _normalize_spaces(text: str) -> str:
-    return re.sub(r"\s+", " ", (text or "").strip())
+def _dedupe_adjacent_words(text: str) -> str:
+    if not text:
+        return text
+
+    words = text.split()
+    if not words:
+        return text
+
+    result = [words[0]]
+    for word in words[1:]:
+        if word != result[-1]:
+            result.append(word)
+
+    return " ".join(result)
 
 
 @dataclass
@@ -40,8 +52,10 @@ ARTIST_PATTERNS = {
         r"\bfugner\b",
         r"\bfugnor\b",
         r"\bf[üu]gner\b",
-        r"\bwoitschech fangor\b",
-        r"\bwojciech\b",
+        r"\bwoitschech\b",
+        r"\bwojciek\b",
+        r"\bvojtech\b",
+        r"\bvojteh\b",
     ],
     "wassily kandinsky": [
         r"\bwassily kandinsky\b",
@@ -51,7 +65,6 @@ ARTIST_PATTERNS = {
         r"\bkandiski\b",
         r"\bbasilikum\b",
         r"\bwassili kandinsky\b",
-        r"\bwassili\b",
     ],
     "bridget riley": [
         r"\bbridget riley\b",
@@ -63,6 +76,9 @@ ARTIST_PATTERNS = {
         r"\breil\b",
         r"\bdreiling\b",
         r"\bdryly\b",
+        r"\bdraily\b",
+        r"\bbridge dryly\b",
+        r"\bbridge riley\b",
     ],
     "victor vasarely": [
         r"\bvictor vasarely\b",
@@ -72,14 +88,20 @@ ARTIST_PATTERNS = {
         r"\bbasarely\b",
         r"\bwasarely\b",
         r"\bvasarin\b",
-        r"\bviktor vasarely\b",
-        r"\bviktor\b",
+        r"\bbazarew\b",
+        r"\bbazarev\b",
+        r"\bbasarew\b",
+        r"\bvasarew\b",
+        r"\bvasarev\b",
+        r"\bbazarely\b",
+        r"\bbazareli\b",
+        r"\bvictor bazarew\b",
+        r"\bvictor bazarev\b",
     ],
     "julian stanczak": [
         r"\bjulian stanczak\b",
         r"\bstanczak\b",
         r"\bsta[nń]czak\b",
-        r"\bjulian\b",
     ],
     "margaret wenstrup": [
         r"\bmargaret wenstrup\b",
@@ -87,13 +109,10 @@ ARTIST_PATTERNS = {
         r"\bwenstrub\b",
         r"\bwenstr[üu]p\b",
         r"\bbenstrup\b",
-        r"\bmargaret\b",
-        r"\bmargret\b",
     ],
     "edna andrade": [
         r"\bedna andrade\b",
         r"\bandrade\b",
-        r"\bedna\b",
     ],
 }
 
@@ -111,15 +130,12 @@ ARTWORK_PATTERNS = {
         r"\bbukla\b",
         r"\bbuglar\b",
         r"\bbogler\b",
-        r"\bbogla\b",
-        r"\bboklar\b",
     ],
     "klepsydra 1": [
         r"\bklepsydra 1\b",
         r"\bklepsydra eins\b",
         r"\bclepsydra\b",
         r"\bklepsidra\b",
-        r"\bkleepsydra\b",
     ],
     "kreisel": [
         r"\bkreisel\b",
@@ -128,15 +144,12 @@ ARTWORK_PATTERNS = {
         r"\byabla\b",
         r"\bjabla\b",
         r"\bjablo\b",
-        r"\bjableh\b",
-        r"\bjabloh\b",
     ],
     "shih-li": [
         r"\bshih-li\b",
         r"\bshih li\b",
         r"\bschi li\b",
         r"\bshi li\b",
-        r"\bshili\b",
     ],
     "zittern": [
         r"\bzittern\b",
@@ -148,19 +161,12 @@ ARTWORK_PATTERNS = {
         r"\bbee 13\b",
         r"\bbe 13\b",
         r"\bbi 13\b",
-        r"\bbild 13\b",
-        r"\bbeat 13\b",
     ],
     "b15": [
         r"\bb15\b",
         r"\bb 15\b",
         r"\bb fünfzehn\b",
         r"\bb funfzehn\b",
-        r"\bbee 15\b",
-        r"\bbe 15\b",
-        r"\bbi 15\b",
-        r"\bbild 15\b",
-        r"\bbeat 15\b",
     ],
     "e37": [
         r"\be37\b",
@@ -214,11 +220,13 @@ def _replace_patterns(text: str, pattern_map: dict[str, list[str]]) -> tuple[str
         if matched:
             found.append(canonical)
 
+    repaired = _dedupe_adjacent_words(repaired)
     return repaired, found
 
 
 def _normalize_question_shape(text: str) -> str:
-    q = _normalize_spaces((text or "").lower())
+    q = text.strip().lower()
+    q = re.sub(r"\s+", " ", q)
 
     q = re.sub(r"^sagen wir,?\s*wo die ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
     q = re.sub(r"^wo die ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
@@ -233,61 +241,37 @@ def _normalize_question_shape(text: str) -> str:
     q = re.sub(r"^lebte ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
     q = re.sub(r"^wurde ([a-zäöüß][a-zäöüß\s\-]+) geboren$", r"wann wurde \1 geboren", q)
 
-    q = re.sub(r"\bwer hat das werk ([a-z0-9äöüß\-\s]+) gemalt\b", r"von wem ist das werk \1", q)
-    q = re.sub(r"\bwer hat das ([a-z0-9äöüß\-\s]+) gemalt\b", r"von wem ist \1", q)
-    q = re.sub(r"\bwer malte\b", "von wem ist", q)
+    q = re.sub(r"^dann lebt(?:e)? die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^dann lebt(?:e)? ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^liebte die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^liebte ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^lebt die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^lebt ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+
+    q = re.sub(r"^wer hat das werk ([a-zäöüß0-9\s\-]+) gemalt$", r"von wem ist das werk \1", q)
+    q = re.sub(r"^wer hat das ([a-zäöüß0-9\s\-]+) gemalt$", r"von wem ist \1", q)
 
     q = re.sub(r"\s+", " ", q).strip()
+    q = _dedupe_adjacent_words(q)
     return q
-
-
-def _dedupe_adjacent_words(text: str) -> str:
-    if not text:
-        return text
-
-    previous = None
-    current = text
-
-    while previous != current:
-        previous = current
-        current = re.sub(r"\b(\w+)( \1\b)+", r"\1", current)
-
-    return current
-
-
-def _dedupe_entities_in_text(text: str, canonical_entities: List[str]) -> str:
-    repaired = text
-
-    for entity in sorted(canonical_entities, key=len, reverse=True):
-        pattern = rf"(?:{re.escape(entity)}\s+)+{re.escape(entity)}"
-        repaired = re.sub(pattern, entity, repaired)
-
-    repaired = _dedupe_adjacent_words(repaired)
-    repaired = re.sub(r"\s+", " ", repaired).strip()
-    return repaired
-
-
-def _pick_entity(entities: List[str], candidates: dict[str, list[str]]) -> Optional[str]:
-    for entity in entities:
-        if entity in candidates:
-            return entity
-    return None
 
 
 def _detect_intent(q: str, entities: List[str]) -> str:
     q_ascii = _ascii(q)
 
-    if any(e in q for e in [
-        "b13", "b15", "e37", "e47", "boglar i", "klepsydra 1",
-        "im schwarzen kreis", "spätes leuchten", "abstoßende anziehung",
-        "flüchtige bewegung", "4-64", "kreisel", "yabla", "shih-li", "zittern"
-    ]):
+    if any(
+        e in q for e in [
+            "b13", "b15", "e37", "e47",
+            "boglar i", "klepsydra 1", "im schwarzen kreis",
+            "spätes leuchten", "abstoßende anziehung", "flüchtige bewegung", "4-64"
+        ]
+    ):
         return "artwork"
 
     if any(word in q_ascii for word in ["gemalt", "entstand", "entstanden", "werk", "bild", "titel", "jahr"]):
         return "artwork"
 
-    if any(word in q_ascii for word in ["geboren", "gestorben", "starb", "lebte", "wer ist", "woher kommt", "wo wurde"]):
+    if any(word in q_ascii for word in ["geboren", "gestorben", "starb", "lebte", "wer ist", "woher kommt"]):
         return "artist"
 
     if any(word in q_ascii for word in ["op art", "op-art", "space age", "vierte dimension", "definieren", "stilrichtung"]):
@@ -304,12 +288,7 @@ def _detect_intent(q: str, entities: List[str]) -> str:
     return "unknown"
 
 
-def _forced_source_hint(
-    artist_entity: Optional[str],
-    artwork_entity: Optional[str],
-    general_entity: Optional[str],
-    intent: str,
-) -> Optional[str]:
+def _forced_source_hint(entities: List[str], intent: str) -> Optional[str]:
     artwork_to_source = {
         "im schwarzen kreis": "artworks/kandinsky_im_schwarzen_kreis.md",
         "boglar i": "artworks/vasarely_boglarI.md",
@@ -344,48 +323,47 @@ def _forced_source_hint(
         "vierte dimension": "general/kandinsky_fourth_dimension.md",
     }
 
-    if intent == "artwork" and artwork_entity in artwork_to_source:
-        return artwork_to_source[artwork_entity]
+    if intent == "artwork":
+        for e in entities:
+            if e in artwork_to_source:
+                return artwork_to_source[e]
 
-    if intent == "artist" and artist_entity in artist_to_source:
-        return artist_to_source[artist_entity]
+    if intent == "artist":
+        for e in entities:
+            if e in artist_to_source:
+                return artist_to_source[e]
 
     if intent == "general":
-        if general_entity in general_to_source:
-            return general_to_source[general_entity]
-        if artist_entity == "wassily kandinsky" and general_entity == "vierte dimension":
-            return "general/kandinsky_fourth_dimension.md"
+        for e in entities:
+            if e in general_to_source:
+                return general_to_source[e]
 
     return None
 
 
 def repair_query(raw_text: str, normalized_text: str) -> QueryRepairResult:
-    base = _normalize_spaces((normalized_text or raw_text or "").lower())
+    base = (normalized_text or raw_text or "").strip().lower()
+    base = re.sub(r"\s+", " ", base)
+
     repaired = _normalize_question_shape(base)
 
     repaired, found_artists = _replace_patterns(repaired, ARTIST_PATTERNS)
     repaired, found_artworks = _replace_patterns(repaired, ARTWORK_PATTERNS)
     repaired, found_general = _replace_patterns(repaired, GENERAL_PATTERNS)
 
-    all_found = list(dict.fromkeys(found_artists + found_artworks + found_general))
-
     repaired = _normalize_question_shape(repaired)
-    repaired = _dedupe_entities_in_text(repaired, all_found)
+    repaired = _dedupe_adjacent_words(repaired)
 
-    artist_entity = _pick_entity(found_artists, ARTIST_PATTERNS)
-    artwork_entity = _pick_entity(found_artworks, ARTWORK_PATTERNS)
-    general_entity = _pick_entity(found_general, GENERAL_PATTERNS)
+    entities = list(dict.fromkeys(found_artists + found_artworks + found_general))
+    intent = _detect_intent(repaired, entities)
+    forced_hint = _forced_source_hint(entities, intent)
 
-    intent = _detect_intent(repaired, all_found)
-    forced_hint = _forced_source_hint(
-        artist_entity=artist_entity,
-        artwork_entity=artwork_entity,
-        general_entity=general_entity,
-        intent=intent,
-    )
+    artist_entity = next((e for e in entities if e in ARTIST_PATTERNS), None)
+    artwork_entity = next((e for e in entities if e in ARTWORK_PATTERNS), None)
+    general_entity = next((e for e in entities if e in GENERAL_PATTERNS), None)
 
     confidence = 0.0
-    if all_found:
+    if entities:
         confidence += 0.5
     if intent != "unknown":
         confidence += 0.25
@@ -397,7 +375,7 @@ def repair_query(raw_text: str, normalized_text: str) -> QueryRepairResult:
         normalized_text=normalized_text or "",
         repaired_text=repaired,
         intent=intent,
-        entities=all_found,
+        entities=entities,
         artist_entity=artist_entity,
         artwork_entity=artwork_entity,
         general_entity=general_entity,
