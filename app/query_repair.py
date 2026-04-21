@@ -1,30 +1,8 @@
 import re
-import unicodedata
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-
-def _ascii(text: str) -> str:
-    return "".join(
-        c for c in unicodedata.normalize("NFKD", text)
-        if not unicodedata.combining(c)
-    ).lower()
-
-
-def _dedupe_adjacent_words(text: str) -> str:
-    if not text:
-        return text
-
-    words = text.split()
-    if not words:
-        return text
-
-    result = [words[0]]
-    for word in words[1:]:
-        if word != result[-1]:
-            result.append(word)
-
-    return " ".join(result)
+from app.candidate_matcher import find_artist, find_artwork, find_general_topic
 
 
 @dataclass
@@ -41,196 +19,48 @@ class QueryRepairResult:
     confidence: float = 0.0
 
 
-ARTIST_PATTERNS = {
-    "wojciech fangor": [
-        r"\bwojciech fangor\b",
-        r"\bfangor\b",
-        r"\bfango\b",
-        r"\bfangohr\b",
-        r"\bvangor\b",
-        r"\bvan moor\b",
-        r"\bfugner\b",
-        r"\bfugnor\b",
-        r"\bf[üu]gner\b",
-        r"\bwoitschech\b",
-        r"\bwojciek\b",
-        r"\bvojtech\b",
-        r"\bvojteh\b",
-    ],
-    "wassily kandinsky": [
-        r"\bwassily kandinsky\b",
-        r"\bkandinsky\b",
-        r"\bkandinski\b",
-        r"\bkandisky\b",
-        r"\bkandiski\b",
-        r"\bbasilikum\b",
-        r"\bwassili kandinsky\b",
-    ],
-    "bridget riley": [
-        r"\bbridget riley\b",
-        r"\bbridget\b",
-        r"\bbrigitte\b",
-        r"\bbritta\b",
-        r"\briley\b",
-        r"\breilly\b",
-        r"\breil\b",
-        r"\bdreiling\b",
-        r"\bdryly\b",
-        r"\bdraily\b",
-        r"\bbridge dryly\b",
-        r"\bbridge riley\b",
-    ],
-    "victor vasarely": [
-        r"\bvictor vasarely\b",
-        r"\bvasarely\b",
-        r"\bvasareli\b",
-        r"\bvasarelli\b",
-        r"\bbasarely\b",
-        r"\bwasarely\b",
-        r"\bvasarin\b",
-        r"\bbazarew\b",
-        r"\bbazarev\b",
-        r"\bbasarew\b",
-        r"\bvasarew\b",
-        r"\bvasarev\b",
-        r"\bbazarely\b",
-        r"\bbazareli\b",
-        r"\bvictor bazarew\b",
-        r"\bvictor bazarev\b",
-    ],
-    "julian stanczak": [
-        r"\bjulian stanczak\b",
-        r"\bstanczak\b",
-        r"\bsta[nń]czak\b",
-    ],
-    "margaret wenstrup": [
-        r"\bmargaret wenstrup\b",
-        r"\bwenstrup\b",
-        r"\bwenstrub\b",
-        r"\bwenstr[üu]p\b",
-        r"\bbenstrup\b",
-    ],
-    "edna andrade": [
-        r"\bedna andrade\b",
-        r"\bandrade\b",
-    ],
+ARTIST_TO_SOURCE = {
+    "wojciech fangor": "artists/fangor.md",
+    "wassily kandinsky": "artists/kandinsky.md",
+    "bridget riley": "artists/riley.md",
+    "victor vasarely": "artists/vasarely.md",
+    "julian stanczak": "artists/stanczak.md",
+    "margaret wenstrup": "artists/wenstrup.md",
+    "edna andrade": "artists/andrade.md",
 }
 
-ARTWORK_PATTERNS = {
-    "im schwarzen kreis": [
-        r"\bim schwarzen kreis\b",
-        r"\bden schwarzen kreis\b",
-        r"\bder schwarze kreis\b",
-        r"\bschwarzen kreis\b",
-    ],
-    "boglar i": [
-        r"\bboglar i\b",
-        r"\bboglar 1\b",
-        r"\bboglar eins\b",
-        r"\bbukla\b",
-        r"\bbuglar\b",
-        r"\bbogler\b",
-    ],
-    "klepsydra 1": [
-        r"\bklepsydra 1\b",
-        r"\bklepsydra eins\b",
-        r"\bclepsydra\b",
-        r"\bklepsidra\b",
-    ],
-    "kreisel": [
-        r"\bkreisel\b",
-    ],
-    "yabla": [
-        r"\byabla\b",
-        r"\bjabla\b",
-        r"\bjablo\b",
-    ],
-    "shih-li": [
-        r"\bshih-li\b",
-        r"\bshih li\b",
-        r"\bschi li\b",
-        r"\bshi li\b",
-    ],
-    "zittern": [
-        r"\bzittern\b",
-    ],
-    "b13": [
-        r"\bb13\b",
-        r"\bb 13\b",
-        r"\bb dreizehn\b",
-        r"\bbee 13\b",
-        r"\bbe 13\b",
-        r"\bbi 13\b",
-    ],
-    "b15": [
-        r"\bb15\b",
-        r"\bb 15\b",
-        r"\bb fünfzehn\b",
-        r"\bb funfzehn\b",
-    ],
-    "e37": [
-        r"\be37\b",
-        r"\be 37\b",
-        r"\bi 37\b",
-    ],
-    "e47": [
-        r"\be47\b",
-        r"\be 47\b",
-        r"\bi 47\b",
-    ],
-    "spätes leuchten": [
-        r"\bspätes leuchten\b",
-        r"\bspaetes leuchten\b",
-        r"\bspates leuchten\b",
-    ],
-    "abstoßende anziehung": [
-        r"\babstoßende anziehung\b",
-        r"\babstossende anziehung\b",
-    ],
-    "flüchtige bewegung": [
-        r"\bflüchtige bewegung\b",
-        r"\bfluchtige bewegung\b",
-        r"\bfluechtige bewegung\b",
-    ],
-    "4-64": [
-        r"\b4-64\b",
-        r"\b4 64\b",
-        r"\b4\.64\b",
-        r"\bfarbbewegung\b",
-    ],
+ARTWORK_TO_SOURCE = {
+    "im schwarzen kreis": "artworks/kandinsky_im_schwarzen_kreis.md",
+    "boglar i": "artworks/vasarely_boglar_I.md",
+    "klepsydra 1": "artworks/riley_klepsydra_1.md",
+    "kreisel": "artworks/wenstrup_kreisel.md",
+    "yabla": "artworks/vasarely_yabla.md",
+    "shih-li": "artworks/riley_shih-li.md",
+    "zittern": "artworks/riley_zittern.md",
+    "b13": "artworks/fangor_b13.md",
+    "b15": "artworks/fangor_b15.md",
+    "e37": "artworks/fangor_e37.md",
+    "e47": "artworks/fangor_e47.md",
+    "spätes leuchten": "artworks/stanczak_spaetes_leuchten.md",
+    "abstoßende anziehung": "artworks/stanczak_abstossende_anziehung.md",
+    "flüchtige bewegung": "artworks/stanczak_fluechtige_bewegung.md",
+    "4-64": "artworks/andrade_farbbewegung.md",
 }
 
-GENERAL_PATTERNS = {
-    "op-art": [r"\bop art\b", r"\bop-art\b"],
-    "space age": [r"\bspace age\b", r"\bspace-age\b"],
-    "vierte dimension": [r"\bvierte dimension\b"],
+GENERAL_TO_SOURCE = {
+    "op-art": "general/op_art_general_infos.md",
+    "space age": "general/space_age_general_infos.md",
+    "vierte dimension": "general/kandinsky_fourth_dimension.md",
 }
-
-
-def _replace_patterns(text: str, pattern_map: dict[str, list[str]]) -> tuple[str, list[str]]:
-    repaired = text
-    found = []
-
-    for canonical, patterns in pattern_map.items():
-        matched = False
-        for pattern in patterns:
-            if re.search(pattern, repaired):
-                repaired = re.sub(pattern, canonical, repaired)
-                matched = True
-        if matched:
-            found.append(canonical)
-
-    repaired = _dedupe_adjacent_words(repaired)
-    return repaired, found
 
 
 def _normalize_question_shape(text: str) -> str:
-    q = text.strip().lower()
+    q = (text or "").strip().lower()
     q = re.sub(r"\s+", " ", q)
 
-    q = re.sub(r"^sagen wir,?\s*wo die ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
-    q = re.sub(r"^wo die ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
-    q = re.sub(r"^wo ([a-zäöüß\s\-]+) geboren$", r"wo wurde \1 geboren", q)
+    q = re.sub(r"^sagen wir,?\s*wo die (.+) geboren$", r"wo wurde \1 geboren", q)
+    q = re.sub(r"^wo die (.+) geboren$", r"wo wurde \1 geboren", q)
+    q = re.sub(r"^wo (.+) geboren$", r"wo wurde \1 geboren", q)
 
     q = re.sub(r"^zu welcher zeit fand das space age statt$", "wann war das space age", q)
     q = re.sub(r"^zu welcher zeit war das space age$", "wann war das space age", q)
@@ -238,137 +68,227 @@ def _normalize_question_shape(text: str) -> str:
     q = re.sub(r"\berschien\b", "entstand", q)
     q = re.sub(r"\berschienen\b", "entstanden", q)
 
-    q = re.sub(r"^lebte ([a-zäöüß][a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^wurde ([a-zäöüß][a-zäöüß\s\-]+) geboren$", r"wann wurde \1 geboren", q)
+    q = re.sub(r"^lebte (.+)$", r"wann lebte \1", q)
+    q = re.sub(r"^liebte (.+)$", r"wann lebte \1", q)
+    q = re.sub(r"^dann lebte (.+)$", r"wann lebte \1", q)
+    q = re.sub(r"^dann lebt (.+)$", r"wann lebte \1", q)
+    q = re.sub(r"^wann liebte (.+)$", r"wann lebte \1", q)
 
-    q = re.sub(r"^dann lebt(?:e)? die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^dann lebt(?:e)? ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^liebte die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^liebte ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^lebt die ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
-    q = re.sub(r"^lebt ([a-zäöüß\s\-]+)$", r"wann lebte \1", q)
+    q = re.sub(r"^wurde (.+) geboren$", r"wann wurde \1 geboren", q)
 
-    q = re.sub(r"^wer hat das werk ([a-zäöüß0-9\s\-]+) gemalt$", r"von wem ist das werk \1", q)
-    q = re.sub(r"^wer hat das ([a-zäöüß0-9\s\-]+) gemalt$", r"von wem ist \1", q)
+    # Harte Spezialfälle, die oft genau so aus STT kommen
+    q = re.sub(r"\bunlimited bridge to try me\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\ban die brücke zum achen\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\ban die brucke zum achen\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\bdann lebt die bridget riley\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\bliebte bridget riley\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\bliebte britta dryly\b", "wann lebte bridget riley", q)
+    q = re.sub(r"\bliebte britta dreiling\b", "wann lebte bridget riley", q)
+
+    q = re.sub(r"\bbogolar i\b", "boglar i", q)
+    q = re.sub(r"\bbogolar\b", "boglar i", q)
+
+    q = re.sub(r"\bbazarew\b", "vasarely", q)
+    q = re.sub(r"\bbazarev\b", "vasarely", q)
+
+    q = re.sub(r"\bjoblücke\b", "yabla", q)
+    q = re.sub(r"\bjoblucke\b", "yabla", q)
+
+    q = re.sub(r"\[stimme bricht ab\]", "", q)
 
     q = re.sub(r"\s+", " ", q).strip()
-    q = _dedupe_adjacent_words(q)
     return q
 
 
-def _detect_intent(q: str, entities: List[str]) -> str:
-    q_ascii = _ascii(q)
+def _detect_intent(
+    q: str,
+    artist_entity: Optional[str],
+    artwork_entity: Optional[str],
+    general_entity: Optional[str],
+) -> str:
+    ql = q.lower()
 
-    if any(
-        e in q for e in [
-            "b13", "b15", "e37", "e47",
-            "boglar i", "klepsydra 1", "im schwarzen kreis",
-            "spätes leuchten", "abstoßende anziehung", "flüchtige bewegung", "4-64"
-        ]
-    ):
+    if artwork_entity:
         return "artwork"
 
-    if any(word in q_ascii for word in ["gemalt", "entstand", "entstanden", "werk", "bild", "titel", "jahr"]):
-        return "artwork"
-
-    if any(word in q_ascii for word in ["geboren", "gestorben", "starb", "lebte", "wer ist", "woher kommt"]):
-        return "artist"
-
-    if any(word in q_ascii for word in ["op art", "op-art", "space age", "vierte dimension", "definieren", "stilrichtung"]):
+    if general_entity:
         return "general"
 
-    if entities:
-        if any(e in ARTWORK_PATTERNS for e in entities):
-            return "artwork"
-        if any(e in ARTIST_PATTERNS for e in entities):
-            return "artist"
-        if any(e in GENERAL_PATTERNS for e in entities):
-            return "general"
+    if any(token in ql for token in ["geboren", "gestorben", "starb", "lebte", "wer ist", "woher kommt", "wo wurde"]):
+        return "artist"
+
+    if any(token in ql for token in ["werk", "bild", "gemalt", "entstand", "jahr", "titel"]):
+        return "artwork"
+
+    if any(token in ql for token in ["op-art", "op art", "space age", "vierte dimension", "definieren", "stilrichtung"]):
+        return "general"
+
+    if artist_entity:
+        return "artist"
 
     return "unknown"
 
 
-def _forced_source_hint(entities: List[str], intent: str) -> Optional[str]:
-    artwork_to_source = {
-        "im schwarzen kreis": "artworks/kandinsky_im_schwarzen_kreis.md",
-        "boglar i": "artworks/vasarely_boglarI.md",
-        "klepsydra 1": "artworks/riley_klepsydra_1.md",
-        "kreisel": "artworks/wenstrup_kreisel.md",
-        "yabla": "artworks/vasarely_yabla.md",
-        "shih-li": "artworks/riley_shih-li.md",
-        "zittern": "artworks/riley_zittern.md",
-        "b13": "artworks/fangor_b13.md",
-        "b15": "artworks/fangor_b15.md",
-        "e37": "artworks/fangor_e37.md",
-        "e47": "artworks/fangor_e47.md",
-        "spätes leuchten": "artworks/stanczak_spaetes_leuchten.md",
-        "abstoßende anziehung": "artworks/stanczak_abstossende_anziehung.md",
-        "flüchtige bewegung": "artworks/stanczak_fluechtige_bewegung.md",
-        "4-64": "artworks/andrade_farbbewegung.md",
+def _replace_artist_aliases(text: str, artist_entity: str) -> str:
+    repaired = text
+
+    if artist_entity == "wassily kandinsky":
+        repaired = re.sub(r"\b(kandinsky|kandinski|kandisky|kandiski|basilikum)\b", "wassily kandinsky", repaired)
+
+    elif artist_entity == "victor vasarely":
+        repaired = re.sub(
+            r"\b(vasarely|vasareli|vasarelli|bazarew|bazarev|basarely|wasarely|vasarew|vasarev)\b",
+            "victor vasarely",
+            repaired,
+        )
+
+    elif artist_entity == "wojciech fangor":
+        repaired = re.sub(
+            r"\b(fangor|fango|fangohr|van moor|vangor|fugner|fugnor)\b",
+            "wojciech fangor",
+            repaired,
+        )
+
+    elif artist_entity == "bridget riley":
+        repaired = re.sub(
+            r"\b(riley|reilly|reil|dryly|dreiling|draily|bridget|brigitte|britta|bridge)\b",
+            "bridget riley",
+            repaired,
+        )
+
+    elif artist_entity == "julian stanczak":
+        repaired = re.sub(r"\b(stanczak|stansak|stanszak|stancak)\b", "julian stanczak", repaired)
+
+    elif artist_entity == "margaret wenstrup":
+        repaired = re.sub(r"\b(wenstrup|wenstrub|wenstrüp|benstrup)\b", "margaret wenstrup", repaired)
+
+    elif artist_entity == "edna andrade":
+        repaired = re.sub(r"\b(andrade)\b", "edna andrade", repaired)
+
+    repaired = re.sub(rf"\b{re.escape(artist_entity)}\s+{re.escape(artist_entity)}\b", artist_entity, repaired)
+    return repaired
+
+
+def _replace_artwork_aliases(text: str, artwork_entity: str) -> str:
+    repaired = text
+
+    patterns = {
+        "im schwarzen kreis": r"\b(im schwarzen kreis|den schwarzen kreis|der schwarze kreis|schwarzen kreis)\b",
+        "boglar i": r"\b(boglar i|boglar 1|boglar eins|bogolar i|bogolar|buglar|bukla|bogler)\b",
+        "klepsydra 1": r"\b(klepsydra 1|klepsydra eins|clepsydra|klepsidra)\b",
+        "kreisel": r"\b(kreisel)\b",
+        "yabla": r"\b(yabla|jabla|jablo|joblücke|joblucke)\b",
+        "shih-li": r"\b(shih-li|shih li|schi li|shi li)\b",
+        "zittern": r"\b(zittern)\b",
+        "b13": r"\b(b13|b 13|b dreizehn|bee 13|be 13|bi 13)\b",
+        "b15": r"\b(b15|b 15|b fünfzehn|b funfzehn)\b",
+        "e37": r"\b(e37|e 37|i 37)\b",
+        "e47": r"\b(e47|e 47|i 47)\b",
+        "spätes leuchten": r"\b(spätes leuchten|spaetes leuchten|spates leuchten)\b",
+        "abstoßende anziehung": r"\b(abstoßende anziehung|abstossende anziehung)\b",
+        "flüchtige bewegung": r"\b(flüchtige bewegung|fluchtige bewegung|fluechtige bewegung)\b",
+        "4-64": r"\b(4-64|4 64|4\.64|farbbewegung)\b",
     }
 
-    artist_to_source = {
-        "wojciech fangor": "artists/fangor.md",
-        "wassily kandinsky": "artists/kandinsky.md",
-        "bridget riley": "artists/riley.md",
-        "victor vasarely": "artists/vasarely.md",
-        "julian stanczak": "artists/stanczak.md",
-        "margaret wenstrup": "artists/wenstrup.md",
-        "edna andrade": "artists/andrade.md",
-    }
+    pattern = patterns.get(artwork_entity)
+    if pattern:
+        repaired = re.sub(pattern, artwork_entity, repaired)
 
-    general_to_source = {
-        "op-art": "general/op_art_general_infos.md",
-        "space age": "general/space_age_general_infos.md",
-        "vierte dimension": "general/kandinsky_fourth_dimension.md",
-    }
+    repaired = re.sub(rf"\b{re.escape(artwork_entity)}\s+{re.escape(artwork_entity)}\b", artwork_entity, repaired)
+    return repaired
 
-    if intent == "artwork":
-        for e in entities:
-            if e in artwork_to_source:
-                return artwork_to_source[e]
+
+def _build_repaired_query(
+    q: str,
+    artist_entity: Optional[str],
+    artwork_entity: Optional[str],
+    general_entity: Optional[str],
+    intent: str,
+) -> str:
+    repaired = q
+
+    if artist_entity:
+        repaired = _replace_artist_aliases(repaired, artist_entity)
+
+    if artwork_entity:
+        repaired = _replace_artwork_aliases(repaired, artwork_entity)
+
+    if general_entity:
+        repaired = re.sub(r"\bop art\b", "op-art", repaired)
+        repaired = re.sub(r"\bspace age\b", "space age", repaired)
+        repaired = re.sub(r"\bvierte dimension\b", "vierte dimension", repaired)
+
+    repaired = re.sub(r"\s+", " ", repaired).strip()
 
     if intent == "artist":
-        for e in entities:
-            if e in artist_to_source:
-                return artist_to_source[e]
+        if artist_entity and "lebte" in repaired:
+            repaired = f"wann lebte {artist_entity}"
+        elif artist_entity and "geboren" in repaired:
+            repaired = f"wann wurde {artist_entity} geboren"
+        elif artist_entity and repaired == artist_entity:
+            repaired = f"wer ist {artist_entity}"
 
-    if intent == "general":
-        for e in entities:
-            if e in general_to_source:
-                return general_to_source[e]
+    elif intent == "artwork":
+        if artwork_entity and "entstand" in repaired:
+            if artist_entity:
+                repaired = f"wann entstand das werk {artwork_entity} von {artist_entity}"
+            else:
+                repaired = f"wann entstand das werk {artwork_entity}"
+        elif artwork_entity and "gemalt" in repaired:
+            if artist_entity:
+                repaired = f"wann wurde das werk {artwork_entity} von {artist_entity} gemalt"
+            else:
+                repaired = f"wann wurde das werk {artwork_entity} gemalt"
+        elif artwork_entity and ("von wem" in repaired or "wer hat" in repaired):
+            repaired = f"von wem ist das werk {artwork_entity}"
+        elif artwork_entity and repaired == artwork_entity:
+            repaired = f"was ist das werk {artwork_entity}"
 
-    return None
+    elif intent == "general":
+        if general_entity == "op-art":
+            repaired = "wie kann man op-art definieren"
+        elif general_entity == "space age":
+            repaired = "wann war das space age"
+        elif general_entity == "vierte dimension" and artist_entity == "wassily kandinsky":
+            repaired = "was bedeutete die vierte dimension für wassily kandinsky"
+
+    repaired = re.sub(r"\s+", " ", repaired).strip()
+    return repaired
 
 
 def repair_query(raw_text: str, normalized_text: str) -> QueryRepairResult:
-    base = (normalized_text or raw_text or "").strip().lower()
-    base = re.sub(r"\s+", " ", base)
+    base = _normalize_question_shape(normalized_text or raw_text or "")
 
-    repaired = _normalize_question_shape(base)
+    artist_match = find_artist(base)
+    artwork_match = find_artwork(base)
+    general_match = find_general_topic(base)
 
-    repaired, found_artists = _replace_patterns(repaired, ARTIST_PATTERNS)
-    repaired, found_artworks = _replace_patterns(repaired, ARTWORK_PATTERNS)
-    repaired, found_general = _replace_patterns(repaired, GENERAL_PATTERNS)
+    artist_entity = artist_match.canonical if artist_match else None
+    artwork_entity = artwork_match.canonical if artwork_match else None
+    general_entity = general_match.canonical if general_match else None
 
-    repaired = _normalize_question_shape(repaired)
-    repaired = _dedupe_adjacent_words(repaired)
+    intent = _detect_intent(base, artist_entity, artwork_entity, general_entity)
+    repaired = _build_repaired_query(base, artist_entity, artwork_entity, general_entity, intent)
 
-    entities = list(dict.fromkeys(found_artists + found_artworks + found_general))
-    intent = _detect_intent(repaired, entities)
-    forced_hint = _forced_source_hint(entities, intent)
+    entities = [e for e in [artist_entity, artwork_entity, general_entity] if e]
 
-    artist_entity = next((e for e in entities if e in ARTIST_PATTERNS), None)
-    artwork_entity = next((e for e in entities if e in ARTWORK_PATTERNS), None)
-    general_entity = next((e for e in entities if e in GENERAL_PATTERNS), None)
+    forced_source_hint = None
+    if intent == "artwork" and artwork_entity in ARTWORK_TO_SOURCE:
+        forced_source_hint = ARTWORK_TO_SOURCE[artwork_entity]
+    elif intent == "artist" and artist_entity in ARTIST_TO_SOURCE:
+        forced_source_hint = ARTIST_TO_SOURCE[artist_entity]
+    elif intent == "general" and general_entity in GENERAL_TO_SOURCE:
+        forced_source_hint = GENERAL_TO_SOURCE[general_entity]
 
     confidence = 0.0
-    if entities:
-        confidence += 0.5
-    if intent != "unknown":
-        confidence += 0.25
-    if forced_hint:
-        confidence += 0.25
+    for match in [artist_match, artwork_match, general_match]:
+        if match:
+            confidence = max(confidence, match.score)
+
+    if forced_source_hint:
+        confidence = max(confidence, 0.95)
+    elif entities:
+        confidence = max(confidence, 0.75)
 
     return QueryRepairResult(
         original_text=raw_text or "",
@@ -379,6 +299,6 @@ def repair_query(raw_text: str, normalized_text: str) -> QueryRepairResult:
         artist_entity=artist_entity,
         artwork_entity=artwork_entity,
         general_entity=general_entity,
-        forced_source_hint=forced_hint,
+        forced_source_hint=forced_source_hint,
         confidence=min(confidence, 1.0),
     )

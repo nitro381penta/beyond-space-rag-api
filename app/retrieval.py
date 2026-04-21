@@ -30,7 +30,6 @@ FORCED_SOURCE_BY_ARTIST = {
 FORCED_SOURCE_BY_ARTWORK = {
     "im schwarzen kreis": "artworks/kandinsky_im_schwarzen_kreis.md",
     "boglar i": "artworks/vasarely_boglar_I.md",
-    "vegaviv ii": "artworks/vasarely_vegaviv_II.md",
     "yabla": "artworks/vasarely_yabla.md",
     "klepsydra 1": "artworks/riley_klepsydra_1.md",
     "shih-li": "artworks/riley_shih-li.md",
@@ -94,11 +93,7 @@ def overlap_score(query_tokens: list[str], candidate_tokens: list[str]) -> float
     return len(overlap) / max(len(q), 1)
 
 
-def split_into_chunks(
-    text: str,
-    chunk_size: int = CHUNK_SIZE,
-    overlap: int = CHUNK_OVERLAP,
-) -> list[str]:
+def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     text = text.strip()
     if not text:
         return []
@@ -182,10 +177,9 @@ def get_forced_source(
     q = normalize_for_match(query)
     compact = re.sub(r"[^a-z0-9äöüß]", "", q)
 
-    fallback_map = [
+    forced_map = [
         (["im schwarzen kreis", "schwarzen kreis", "imschwarzenkreis", "schwarzenkreis"], "artworks/kandinsky_im_schwarzen_kreis.md"),
         (["boglar i", "boglar eins", "boglari", "boglar1"], "artworks/vasarely_boglar_I.md"),
-        (["vegaviv ii", "vegaviv2", "vegaviv zwei"], "artworks/vasarely_vegaviv_II.md"),
         (["yabla"], "artworks/vasarely_yabla.md"),
         (["klepsydra", "klepsydra1"], "artworks/riley_klepsydra_1.md"),
         (["kreisel"], "artworks/wenstrup_kreisel.md"),
@@ -210,10 +204,10 @@ def get_forced_source(
 
         (["opart", "op art", "op-art"], "general/op_art_general_infos.md"),
         (["space age", "spaceage"], "general/space_age_general_infos.md"),
-        (["vierte dimension", "fourth dimension"], "general/kandinsky_fourth_dimension.md"),
+        (["vierte dimension"], "general/kandinsky_fourth_dimension.md"),
     ]
 
-    for aliases, source in fallback_map:
+    for aliases, source in forced_map:
         for alias in aliases:
             alias_norm = normalize_for_match(alias)
             alias_compact = re.sub(r"[^a-z0-9äöüß]", "", alias_norm)
@@ -331,15 +325,10 @@ def _score_chunk(
         score += 2.8
     if artwork and normalize_for_match(artwork) in lowered_text:
         score += 3.0
-    if general and normalize_for_match(general) in lowered_text:
-        score += 2.4
-
     if artist and normalize_for_match(artist) in lowered_filename:
         score += 3.5
     if artwork and normalize_for_match(artwork) in lowered_filename:
         score += 4.0
-    if general and normalize_for_match(general) in lowered_filename:
-        score += 2.8
 
     chunk_index = meta.get("chunk_index")
     if isinstance(chunk_index, int):

@@ -1,18 +1,19 @@
-from typing import List
+from functools import lru_cache
 from sentence_transformers import SentenceTransformer
 
-_model = None
 
-def get_embedding_model():
-    global _model
-    if _model is None:
-        _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
-    return _model
+MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
-def preload_embedding_model():
-    get_embedding_model()
 
-def embed_texts(texts: List[str]) -> List[List[float]]:
+@lru_cache(maxsize=1)
+def get_embedding_model() -> SentenceTransformer:
+    return SentenceTransformer(MODEL_NAME)
+
+
+def embed_texts(texts: list[str]) -> list[list[float]]:
+    if not texts:
+        return []
+
     model = get_embedding_model()
-    embeddings = model.encode(texts, convert_to_numpy=True)
+    embeddings = model.encode(texts, normalize_embeddings=True)
     return embeddings.tolist()
