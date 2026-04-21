@@ -9,6 +9,51 @@ def _strip_accents(text: str) -> str:
     )
 
 
+DISPLAY_REPLACEMENTS = [
+    (r"\bbridget riley\b", "Bridget Riley"),
+    (r"\bvictor vasarely\b", "Victor Vasarely"),
+    (r"\bwojciech fangor\b", "Wojciech Fangor"),
+    (r"\bwassily kandinsky\b", "Wassily Kandinsky"),
+    (r"\bjulian stanczak\b", "Julian Stanczak"),
+    (r"\bmargaret wenstrup\b", "Margaret Wenstrup"),
+    (r"\bedna andrade\b", "Edna Andrade"),
+
+    (r"\bim schwarzen kreis\b", "Im schwarzen Kreis"),
+    (r"\bboglar i\b", "Boglar I"),
+    (r"\bklepsydra 1\b", "Klepsydra 1"),
+    (r"\bkreisel\b", "Kreisel"),
+    (r"\byabla\b", "Yabla"),
+    (r"\bshih-li\b", "Shih-Li"),
+    (r"\bzittern\b", "Zittern"),
+    (r"\bspätes leuchten\b", "Spätes Leuchten"),
+    (r"\babstoßende anziehung\b", "Abstoßende Anziehung"),
+    (r"\bflüchtige bewegung\b", "Flüchtige Bewegung"),
+    (r"\b4-64\b", "4-64"),
+
+    (r"\bb13\b", "B13"),
+    (r"\bb15\b", "B15"),
+    (r"\be37\b", "E37"),
+    (r"\be47\b", "E47"),
+
+    (r"\bop-art\b", "Op-Art"),
+    (r"\bspace age\b", "Space Age"),
+    (r"\bvierte dimension\b", "vierte Dimension"),
+]
+
+
+def _apply_display_replacements(text: str) -> str:
+    out = text
+    for pattern, repl in DISPLAY_REPLACEMENTS:
+        out = re.sub(pattern, repl, out, flags=re.IGNORECASE)
+    return out
+
+
+def _capitalize_first(text: str) -> str:
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
+
+
 def normalize_for_tts(text: str) -> str:
     if not text:
         return text
@@ -29,78 +74,37 @@ def normalize_for_tts(text: str) -> str:
     spoken = re.sub(r"\bE37\b", "E 37", spoken)
     spoken = re.sub(r"\bE47\b", "E 47", spoken)
 
-    spoken = re.sub(r"\bShih-Li\b", "Schih Li", spoken)
     spoken = re.sub(r"\bYabla\b", "Jabla", spoken)
-
-    spoken = re.sub(r"\bum\s+1923\b", "ungefähr 1923", spoken)
+    spoken = re.sub(r"\bum 1923\b", "ungefähr 1923", spoken)
 
     spoken = re.sub(r"\s+", " ", spoken).strip()
     return spoken
 
 
-def _fix_title_casing(text: str) -> str:
-    text = re.sub(r"\bim schwarzen kreis\b", "Im schwarzen Kreis", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bboglar i\b", "Boglar I", text, flags=re.IGNORECASE)
-    text = re.sub(r"\byabla\b", "Yabla", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bbridget riley\b", "Bridget Riley", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bvictor vasarely\b", "Victor Vasarely", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bwojciech fangor\b", "Wojciech Fangor", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bmargaret wenstrup\b", "Margaret Wenstrup", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bwassily kandinsky\b", "Wassily Kandinsky", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bkandinsky\b", "Kandinsky", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bjulian stanczak\b", "Julian Stanczak", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bb13\b", "B13", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bb15\b", "B15", text, flags=re.IGNORECASE)
-    text = re.sub(r"\be37\b", "E37", text, flags=re.IGNORECASE)
-    text = re.sub(r"\be47\b", "E47", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bklepsydra 1\b", "Klepsydra 1", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bshih-li\b", "Shih-Li", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bkreisel\b", "Kreisel", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bzittern\b", "Zittern", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bop-art\b", "Op-Art", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bspace age\b", "Space Age", text, flags=re.IGNORECASE)
-    return text
-
-
-def _capitalize_first(text: str) -> str:
-    if not text:
-        return text
-    return text[0].upper() + text[1:]
-
-
-def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
-    source = normalized_query if normalized_query else raw_text
+def beautify_query_for_display(raw_text: str, repaired_text: str) -> str:
+    source = repaired_text or raw_text or ""
     if not source:
         return ""
 
-    q = source.strip().lower()
+    q = source.strip()
     q = _strip_accents(q)
     q = q.replace("ß", "ss")
+
     q = re.sub(r"\s+", " ", q).strip()
     q = re.sub(r"[?!.,;:]+$", "", q)
 
-    q = re.sub(r"^schien\b", "wann entstand", q)
-    q = re.sub(r"^erschien\b", "wann entstand", q)
-    q = re.sub(r"^wer war\b", "wer ist", q)
-    q = re.sub(r"^wer hat\b", "von wem ist", q)
+    q = _apply_display_replacements(q)
 
-    q = re.sub(r"^dann lebt die (.+)$", r"wann lebte \1", q)
-    q = re.sub(r"^dann lebt (.+)$", r"wann lebte \1", q)
-    q = re.sub(r"^liebte (.+)$", r"wann lebte \1", q)
-    q = re.sub(r"^wann liebte (.+)$", r"wann lebte \1", q)
+    q = re.sub(r"\bdas werk\b", "das Werk", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bvon wem\b", "Von wem", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwer ist\b", "Wer ist", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann lebte\b", "Wann lebte", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann wurde\b", "Wann wurde", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann entstand\b", "Wann entstand", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwas bedeutete\b", "Was bedeutete", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwie kann man\b", "Wie kann man", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwo wurde\b", "Wo wurde", q, flags=re.IGNORECASE)
 
-    q = re.sub(r"\bbogolar\b", "boglar i", q)
-    q = re.sub(r"\bbogolar i\b", "boglar i", q)
-
-    q = re.sub(
-        r"^wann wurde im schwarzen kreis von (.+) gemalt$",
-        r"wann wurde das werk im schwarzen kreis von \1 gemalt",
-        q,
-        flags=re.IGNORECASE,
-    )
-
-    q = re.sub(r"\s+", " ", q).strip()
-    q = _fix_title_casing(q)
     q = _capitalize_first(q)
 
     if not q.endswith("?"):

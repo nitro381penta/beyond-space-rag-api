@@ -1,172 +1,254 @@
 import re
 import unicodedata
 from dataclasses import dataclass
-from difflib import SequenceMatcher
-from typing import List, Optional
+from typing import Dict, List, Optional
+
+
+@dataclass
+class MatchResult:
+    canonical: str
+    alias: str
+    score: float
 
 
 def _ascii(text: str) -> str:
-    if not text:
-        return ""
-    return "".join(
+    text = (text or "").strip().lower()
+    text = "".join(
         c for c in unicodedata.normalize("NFKD", text)
         if not unicodedata.combining(c)
-    ).lower()
-
-
-def _normalize(text: str) -> str:
-    text = _ascii(text)
+    )
     text = text.replace("ß", "ss")
-    text = text.replace("-", " ")
-    text = re.sub(r"[^a-z0-9 ]+", " ", text)
+    text = re.sub(r"[^a-z0-9\s\-]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
-def _compact(text: str) -> str:
-    return re.sub(r"\s+", "", _normalize(text))
+def _token_overlap_score(query: str, alias: str) -> float:
+    q_tokens = set(_ascii(query).split())
+    a_tokens = set(_ascii(alias).split())
+
+    if not q_tokens or not a_tokens:
+        return 0.0
+
+    overlap = q_tokens.intersection(a_tokens)
+    if not overlap:
+        return 0.0
+
+    return len(overlap) / len(a_tokens)
 
 
-def _similarity(a: str, b: str) -> float:
-    return SequenceMatcher(None, _normalize(a), _normalize(b)).ratio()
+def _substring_score(query: str, alias: str) -> float:
+    q = _ascii(query)
+    a = _ascii(alias)
+
+    if not q or not a:
+        return 0.0
+
+    if a in q:
+        return 1.0
+
+    return 0.0
 
 
-@dataclass
-class MatchCandidate:
-    canonical: str
-    score: float
-    matched_variant: Optional[str] = None
+def _best_match(query: str, alias_map: Dict[str, List[str]], threshold: float = 0.74) -> Optional[MatchResult]:
+    best: Optional[MatchResult] = None
+
+    for canonical, aliases in alias_map.items():
+        for alias in aliases:
+            sub = _substring_score(query, alias)
+            tok = _token_overlap_score(query, alias)
+
+            score = max(sub, tok)
+
+            if score >= threshold:
+                if best is None or score > best.score:
+                    best = MatchResult(
+                        canonical=canonical,
+                        alias=alias,
+                        score=score,
+                    )
+
+    return best
 
 
-ARTISTS = {
-    "wojciech fangor": [
-        "wojciech fangor", "fangor", "fango", "fangohr", "vangor",
-        "van moor", "fugner", "fugnor", "fugner", "woitschech fangor"
+ARTIST_ALIASES: Dict[str, List[str]] = {
+    "Wojciech Fangor": [
+        "wojciech fangor",
+        "fangor",
+        "fango",
+        "fangohr",
+        "van moor",
+        "fugner",
+        "fugnor",
+        "woitschech fangor",
     ],
-    "wassily kandinsky": [
-        "wassily kandinsky", "kandinsky", "kandinski", "kandisky",
-        "kandiski", "basilikum", "wassili kandinsky"
+    "Wassily Kandinsky": [
+        "wassily kandinsky",
+        "kandinsky",
+        "kandinski",
+        "kandisky",
+        "kandiski",
+        "basilikum",
+        "wassili kandinsky",
     ],
-    "bridget riley": [
-        "bridget riley", "bridget", "brigitte", "britta", "riley",
-        "reilly", "reil", "dryly", "dreiling", "bridge dryly",
-        "britta dryly", "bridge to try me"
+    "Bridget Riley": [
+        "bridget riley",
+        "bridget",
+        "brigitte",
+        "britta",
+        "riley",
+        "reilly",
+        "reil",
+        "dryly",
+        "dreiling",
+        "bridge dry",
+        "brille dry",
+        "bridget dry",
     ],
-    "victor vasarely": [
-        "victor vasarely", "vasarely", "vasareli", "vasarelli",
-        "basarely", "bazarew", "wasarely", "vasarin", "bazarev"
+    "Victor Vasarely": [
+        "victor vasarely",
+        "vasarely",
+        "vasareli",
+        "vasarelli",
+        "basarely",
+        "basali",
+        "bazali",
+        "bazarew",
+        "bazarev",
+        "vasarew",
+        "vasarev",
     ],
-    "julian stanczak": [
-        "julian stanczak", "stanczak", "stancak", "stanchak"
+    "Julian Stanczak": [
+        "julian stanczak",
+        "stanczak",
+        "stansak",
+        "stanzak",
     ],
-    "margaret wenstrup": [
-        "margaret wenstrup", "wenstrup", "wenstrub", "wenstrupf",
-        "wenstrüp", "benstrup"
+    "Margaret Wenstrup": [
+        "margaret wenstrup",
+        "wenstrup",
+        "wenstrub",
+        "wenstrupf",
+        "wenstrupp",
+        "benstrup",
     ],
-    "edna andrade": [
-        "edna andrade", "andrade"
+    "Edna Andrade": [
+        "edna andrade",
+        "andrade",
     ],
 }
 
-ARTWORKS = {
-    "im schwarzen kreis": [
-        "im schwarzen kreis", "den schwarzen kreis", "der schwarze kreis",
-        "schwarzen kreis"
+ARTWORK_ALIASES: Dict[str, List[str]] = {
+    "Im schwarzen kreis": [
+        "im schwarzen kreis",
+        "den schwarzen kreis",
+        "der schwarze kreis",
+        "schwarzen kreis",
     ],
-    "boglar i": [
-        "boglar i", "boglar 1", "boglar eins", "buglar", "bukla", "bogler"
+    "Boglar i": [
+        "boglar i",
+        "boglar 1",
+        "boglar eins",
+        "bogolar i",
+        "bogolar eins",
+        "bogolar",
+        "buglar",
+        "bukla",
+        "bogler",
+        "buckenhahe eins",
     ],
-    "klepsydra 1": [
-        "klepsydra 1", "klepsydra eins", "clepsydra", "klepsidra"
+    "Klepsydra 1": [
+        "klepsydra 1",
+        "klepsydra eins",
+        "clepsydra",
+        "klepsidra",
     ],
-    "kreisel": [
-        "kreisel", "wenstrup kreisel"
+    "Kreisel": [
+        "kreisel",
+        "kreiser",
     ],
-    "yabla": [
-        "yabla", "jabla", "jablo"
+    "Yabla": [
+        "yabla",
+        "jabla",
+        "yabla",
     ],
-    "shih-li": [
-        "shih-li", "shih li", "shi li", "schi li"
+    "Shih-Li": [
+        "shih-li",
+        "shih li",
+        "shi li",
+        "schi li",
     ],
-    "zittern": [
-        "zittern"
+    "Zittern": [
+        "zittern",
     ],
-    "b13": [
-        "b13", "b 13", "b dreizehn", "bee 13", "be 13", "bi 13"
+    "B13": [
+        "b13",
+        "b 13",
+        "b dreizehn",
+        "bee 13",
+        "be 13",
+        "bi 13",
     ],
-    "b15": [
-        "b15", "b 15", "b fünfzehn", "b funfzehn"
+    "B15": [
+        "b15",
+        "b 15",
+        "b fünfzehn",
+        "b funfzehn",
     ],
-    "e37": [
-        "e37", "e 37", "i 37"
+    "E37": [
+        "e37",
+        "e 37",
+        "i 37",
     ],
-    "e47": [
-        "e47", "e 47", "i 47"
+    "E47": [
+        "e47",
+        "e 47",
+        "i 47",
     ],
-    "spätes leuchten": [
-        "spätes leuchten", "spaetes leuchten", "spates leuchten"
+    "Spätes Leuchten": [
+        "spätes leuchten",
+        "spaetes leuchten",
+        "spates leuchten",
     ],
-    "abstoßende anziehung": [
-        "abstoßende anziehung", "abstossende anziehung"
+    "Abstoßende anziehung": [
+        "abstoßende anziehung",
+        "abstossende anziehung",
     ],
-    "flüchtige bewegung": [
-        "flüchtige bewegung", "fluechtige bewegung", "fluchtige bewegung"
+    "Flüchtige Bewegung": [
+        "flüchtige bewegung",
+        "fluchtige bewegung",
+        "fluechtige bewegung",
     ],
     "4-64": [
-        "4-64", "4 64", "4.64", "farbbewegung"
+        "4-64",
+        "4 64",
+        "4.64",
+        "farbbewegung",
     ],
 }
 
-GENERAL = {
-    "op-art": ["op-art", "op art"],
-    "space age": ["space age", "space-age"],
-    "vierte dimension": ["vierte dimension"],
+GENERAL_ALIASES: Dict[str, List[str]] = {
+    "op-art": [
+        "op-art",
+        "op art",
+    ],
+    "space age": [
+        "space age",
+        "space-age",
+    ],
+    "vierte dimension": [
+        "vierte dimension",
+    ],
 }
 
 
-def _best_match(text: str, candidates: dict[str, list[str]], threshold: float = 0.72) -> Optional[MatchCandidate]:
-    text_norm = _normalize(text)
-    text_compact = _compact(text)
-
-    best: Optional[MatchCandidate] = None
-
-    for canonical, variants in candidates.items():
-        all_forms = [canonical] + variants
-        for variant in all_forms:
-            variant_norm = _normalize(variant)
-            variant_compact = _compact(variant)
-
-            score = 0.0
-
-            if variant_norm and variant_norm in text_norm:
-                score = 1.0
-            elif variant_compact and variant_compact in text_compact:
-                score = 0.98
-            else:
-                score = max(
-                    _similarity(text_norm, variant_norm),
-                    _similarity(text_compact, variant_compact),
-                )
-
-            if best is None or score > best.score:
-                best = MatchCandidate(
-                    canonical=canonical,
-                    score=score,
-                    matched_variant=variant,
-                )
-
-    if best and best.score >= threshold:
-        return best
-    return None
+def find_artist(query: str) -> Optional[MatchResult]:
+    return _best_match(query, ARTIST_ALIASES, threshold=0.74)
 
 
-def find_artist(text: str) -> Optional[MatchCandidate]:
-    return _best_match(text, ARTISTS, threshold=0.70)
+def find_artwork(query: str) -> Optional[MatchResult]:
+    return _best_match(query, ARTWORK_ALIASES, threshold=0.74)
 
 
-def find_artwork(text: str) -> Optional[MatchCandidate]:
-    return _best_match(text, ARTWORKS, threshold=0.72)
-
-
-def find_general_topic(text: str) -> Optional[MatchCandidate]:
-    return _best_match(text, GENERAL, threshold=0.78)
+def find_general_topic(query: str) -> Optional[MatchResult]:
+    return _best_match(query, GENERAL_ALIASES, threshold=0.74)

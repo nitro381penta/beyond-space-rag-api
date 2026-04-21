@@ -42,7 +42,7 @@ def _contains_abort_marker(text: str) -> bool:
     return any(marker in t for marker in abort_markers)
 
 
-def _is_obvious_gibberish(raw_text: str, normalized_query: str) -> bool:
+def _is_implausible_transcript(raw_text: str, normalized_query: str) -> bool:
     raw = (raw_text or "").strip().lower()
     norm = (normalized_query or "").strip().lower()
 
@@ -59,6 +59,9 @@ def _is_obvious_gibberish(raw_text: str, normalized_query: str) -> bool:
         "unlimited bridge to try me",
         "an die brücke zum achen",
         "an die brucke zum achen",
+        "wo die joblücke war",
+        "wo die joblucke war",
+        "dann lief die brille dry",
     ]
 
     if raw in obvious_gibberish or norm in obvious_gibberish:
@@ -69,6 +72,16 @@ def _is_obvious_gibberish(raw_text: str, normalized_query: str) -> bool:
     ]
     if sum(1 for token in english_noise_markers if token in raw) >= 2:
         return True
+
+    if not _looks_like_question(norm):
+        recoverable_prefixes = [
+            "liebte ",
+            "dann lebt ",
+            "dann lebt die ",
+            "wann liebte ",
+        ]
+        if not any(norm.startswith(prefix) for prefix in recoverable_prefixes):
+            return True
 
     return False
 
@@ -93,25 +106,25 @@ def _should_retry_after_repair(transcript: str, normalized_query: str, repair) -
     norm = (normalized_query or "").strip().lower()
     repaired = (repair.repaired_text or "").strip().lower()
 
-    if _is_obvious_gibberish(transcript, normalized_query):
+    if _contains_abort_marker(raw) or _contains_abort_marker(norm) or _contains_abort_marker(repaired):
         return True
 
-    # Wenn gar nichts Brauchbares erkannt wurde
+    known_bad_fragments = [
+        "joblücke",
+        "joblucke",
+    ]
+    if any(fragment in norm for fragment in known_bad_fragments):
+        return True
+
+    if _is_implausible_transcript(transcript, normalized_query) and repair.confidence < 0.72:
+        return True
+
     if repair.intent == "unknown" and not repair.entities and not repair.forced_source_hint:
-        return True
-
-    # Wenn die Rohfassung keine Frage ist und die Reparatur auch nicht überzeugend hilft
-    if not _looks_like_question(norm) and not _looks_like_question(repaired):
-        if repair.confidence < 0.80:
+        if not _looks_like_question(norm) and not _looks_like_question(repaired):
             return True
 
-    # Unvollständige Werkfrage
     if "werk" in repaired and not repair.artwork_entity and repair.confidence < 0.85:
-        return True
-
-    # Unvollständige Künstlerfrage
-    if any(token in repaired for token in ["lebte", "geboren", "gestorben"]) and not repair.artist_entity:
-        if repair.confidence < 0.85:
+        if not any(token in repaired for token in ["wann", "von wem", "gemalt", "entstand"]):
             return True
 
     return False
@@ -123,11 +136,6 @@ def _retrieval_is_too_weak(chunks: list, repair) -> bool:
 
     top = chunks[0]
     top_score = top.get("score", -999)
-    top_source = top.get("metadata", {}).get("source", "")
-
-    # Wenn wir eine forced source haben, ist das meistens schon stark genug
-    if repair.forced_source_hint and top_source == repair.forced_source_hint:
-        return False
 
     if not repair.entities and top_score < 12:
         return True
@@ -135,12 +143,6 @@ def _retrieval_is_too_weak(chunks: list, repair) -> bool:
     repaired_text = (repair.repaired_text or "").lower()
 
     if "werk" in repaired_text and not repair.artwork_entity and top_score < 20:
-        return True
-
-    if repair.intent == "artist" and not repair.artist_entity and top_score < 18:
-        return True
-
-    if repair.intent == "general" and not repair.general_entity and top_score < 14:
         return True
 
     if repair.confidence < 0.40 and top_score < 14:
@@ -164,20 +166,14 @@ async def ask(audio: UploadFile = File(...)):
 
         normalized_query = normalize_query(transcript)
         repair = repair_query(transcript, normalized_query)
-        display_text = beautify_query_for_display(
-            transcript,
-            repair.repaired_text or normalized_query
-        )
+        display_text = beautify_query_for_display(transcript, repair.repaired_text or normalized_query)
 
         print("\n=== TRANSCRIPT ===")
         print(transcript)
-
         print("\n=== NORMALIZED QUERY ===")
         print(normalized_query)
-
         print("\n=== REPAIRED QUERY ===")
         print(repair.repaired_text)
-
         print("\n=== REPAIR META ===")
         print({
             "intent": repair.intent,
@@ -188,7 +184,6 @@ async def ask(audio: UploadFile = File(...)):
             "forced_source_hint": repair.forced_source_hint,
             "confidence": repair.confidence,
         })
-
         print("\n=== DISPLAY TEXT ===")
         print(display_text)
 
@@ -200,7 +195,6 @@ async def ask(audio: UploadFile = File(...)):
 
             print("\n=== ANSWER ===")
             print(retry_response.answer_text)
-
             print("\n=== TTS TEXT ===")
             print(normalize_for_tts(retry_response.answer_text))
 
@@ -225,7 +219,6 @@ async def ask(audio: UploadFile = File(...)):
 
             print("\n=== ANSWER ===")
             print(retry_response.answer_text)
-
             print("\n=== TTS TEXT ===")
             print(normalize_for_tts(retry_response.answer_text))
 
@@ -253,10 +246,7 @@ async def ask(audio: UploadFile = File(...)):
         print("\n=== USER PROMPT ===")
         print(user_prompt)
 
-        answer_text = generate_answer(
-            system_prompt=system_prompt,
-            user_prompt=user_prompt,
-        )
+        answer_text = generate_answer(system_prompt=system_prompt, user_prompt=user_prompt)
         answer_text = clean_answer_for_tts(answer_text)
 
         print("\n=== ANSWER ===")
