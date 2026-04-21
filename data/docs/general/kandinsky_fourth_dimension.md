@@ -1,5 +1,8 @@
 # Kandinsky und die vierte Dimension
 
+Für Wassily Kandinsky bedeutete die vierte Dimension eine geistige, nicht sichtbare Ebene der Wirklichkeit. 
+Der Kreis erschien ihm als klarste Weisung zur vierten Dimension und als Form, die über die sichtbare Welt hinausweist.
+
 Im Alter von 60 Jahren hat sein Gemälde mit dem Titel Mehrere Kreise (1928) nur eine Form - den Kreis. Kandinsky sagte, der Kreis „zeigt am deutlichsten auf die vierte Dimension“. Er glaubte, dass der Kreis die ideale Form des spirituellen Ausdrucks sei. Gegen Ende seines Lebens malte er Komposition X (1939). Seine letzten Lebensjahre verbrachte er in Frankreich. Leider lebte er hier mit seiner Frau zurückgezogener und litt unter Depressionen, weil sich seine Bilder nicht verkauften.
 
 ## Komposition 8
