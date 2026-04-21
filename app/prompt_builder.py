@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 
 def format_context(chunks: List[Dict]) -> str:
@@ -18,24 +18,38 @@ def build_system_prompt() -> str:
     return (
         "Du bist ein Museumsassistent. "
         "Beantworte die Frage ausschließlich auf Grundlage des bereitgestellten Kontexts. "
-        "Antworte kurz, klar, natürlich und direkt. "
         "Keine Füllwörter, kein Zögern, keine Einleitungen wie 'ähm', 'also' oder 'ich denke'. "
         "Keine Markdown-Formatierung, keine Sternchen, keine Aufzählungen. "
         "Wenn die Information im Kontext enthalten ist, nenne sie direkt. "
         "Wenn sie nur teilweise enthalten ist, sage genau, was im Kontext steht und was nicht. "
-        "Wenn bei einer Lebensdaten-Frage nur ein Geburtsdatum, aber kein Sterbedatum im Kontext steht, sage das klar und natürlich. "
+        "Wenn bei einer Lebensdaten-Frage nur ein Geburtsdatum, aber kein Sterbedatum im Kontext steht, "
+        "sage das klar und natürlich. "
         "Wenn bei einer Lebensdaten-Frage sowohl Geburts- als auch Sterbedatum vorhanden sind, nenne beides direkt. "
         "Wenn nach einem Werk gefragt wird und Titel, Jahr oder Künstler im Kontext stehen, nenne diese direkt. "
+        "Wenn die Frage erkennbar fehlerhaft transkribiert wurde, beantworte trotzdem nur das, was im Kontext steht. "
         "Erfinde keine Fakten und ergänze nichts aus Weltwissen."
     )
 
 
-def build_user_prompt(query: str, chunks: List[Dict]) -> str:
+def build_user_prompt(
+    query: str,
+    chunks: List[Dict],
+    repaired_query: Optional[str] = None,
+    intent: Optional[str] = None,
+) -> str:
     context = format_context(chunks)
+
+    repaired_block = ""
+    if repaired_query and repaired_query != query:
+        repaired_block = f"\nReparierte Anfrage:\n{repaired_query}\n"
+
+    intent_block = ""
+    if intent:
+        intent_block = f"\nErkannter Fragetyp:\n{intent}\n"
 
     return f"""
 Frage der Besucherin:
-{query}
+{query}{repaired_block}{intent_block}
 
 Verfügbare Kontextinformationen:
 {context}
@@ -50,6 +64,8 @@ Bei Fragen nach Lebensdaten:
 - Wenn nur Jahreszahlen vorhanden sind, nenne die Jahreszahlen.
 Bei Fragen zu Kunstwerken:
 - Nenne möglichst direkt Titel, Künstler und Jahr, sofern sie im Kontext stehen.
+Bei allgemeinen Fragen:
+- Gib eine kurze, verständliche Definition oder Einordnung nur aus dem Kontext.
 Die Ausgabe soll kurz, klar, natürlich und für gesprochene Wiedergabe geeignet sein.
 Ohne Markdown, ohne Sternchen, ohne Füllwörter, ohne Zögern.
 """.strip()

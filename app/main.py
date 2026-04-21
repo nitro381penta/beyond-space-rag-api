@@ -8,6 +8,7 @@ from app.llm_remote import generate_answer
 from app.tts_elevenlabs import synthesize_speech
 from app.rag_index import get_collection
 from app.query_normalizer import normalize_query
+from app.query_repair import repair_query
 from app.spoken_text import beautify_query_for_display, normalize_for_tts
 
 
@@ -29,9 +30,15 @@ def _looks_like_question(text: str) -> bool:
     return any(q.startswith(starter + " ") or q == starter for starter in question_starters)
 
 
-def _is_implausible_transcript(raw_text: str, normalized_query: str) -> bool:
+def _is_implausible_transcript(
+    raw_text: str,
+    normalized_query: str,
+    repaired_query: str,
+    repair_confidence: float,
+) -> bool:
     raw = (raw_text or "").strip().lower()
     norm = (normalized_query or "").strip().lower()
+    repaired = (repaired_query or "").strip().lower()
 
     if not raw or len(raw) < 6:
         return True
@@ -41,9 +48,11 @@ def _is_implausible_transcript(raw_text: str, normalized_query: str) -> bool:
         "can't leave the bridge dryly",
         "cant leave the bridge dryly",
         "ich bin liebti britta dreiling",
+        "am liebste wojciech fügner",
+        "dann liebte wojciech van moor",
     ]
 
-    if raw in obvious_gibberish or norm in obvious_gibberish:
+    if raw in obvious_gibberish or norm in obvious_gibberish or repaired in obvious_gibberish:
         return True
 
     english_noise_markers = [
@@ -52,10 +61,13 @@ def _is_implausible_transcript(raw_text: str, normalized_query: str) -> bool:
     if sum(1 for token in english_noise_markers if token in raw) >= 2:
         return True
 
-    if not _looks_like_question(norm):
-        return True
+    if _looks_like_question(norm):
+        return False
 
-    return False
+    if _looks_like_question(repaired) and repair_confidence >= 0.6:
+        return False
+
+    return True
 
 
 def _build_retry_response(transcript: str, display_text: str) -> AskResponse:
@@ -87,16 +99,43 @@ async def ask(audio: UploadFile = File(...)):
         transcript = transcribe_audio(audio_bytes, filename=audio.filename or "audio.wav")
 
         normalized_query = normalize_query(transcript)
-        display_text = beautify_query_for_display(transcript, normalized_query)
+        repair = repair_query(transcript, normalized_query)
+
+        display_text = beautify_query_for_display(
+            raw_text=transcript,
+            normalized_query=normalized_query,
+            repaired_query=repair.repaired_text,
+        )
 
         print("\n=== TRANSCRIPT ===")
         print(transcript)
+
         print("\n=== NORMALIZED QUERY ===")
         print(normalized_query)
+
+        print("\n=== REPAIRED QUERY ===")
+        print(repair.repaired_text)
+
+        print("\n=== REPAIR META ===")
+        print({
+            "intent": repair.intent,
+            "entities": repair.entities,
+            "artist_entity": repair.artist_entity,
+            "artwork_entity": repair.artwork_entity,
+            "general_entity": repair.general_entity,
+            "forced_source_hint": repair.forced_source_hint,
+            "confidence": repair.confidence,
+        })
+
         print("\n=== DISPLAY TEXT ===")
         print(display_text)
 
-        if _is_implausible_transcript(transcript, normalized_query):
+        if _is_implausible_transcript(
+            raw_text=transcript,
+            normalized_query=normalized_query,
+            repaired_query=repair.repaired_text,
+            repair_confidence=repair.confidence,
+        ):
             print("\n=== STT QUALITY CHECK ===")
             print("Transcript classified as implausible. Returning retry response.")
 
@@ -104,12 +143,22 @@ async def ask(audio: UploadFile = File(...)):
 
             print("\n=== ANSWER ===")
             print(retry_response.answer_text)
+
             print("\n=== TTS TEXT ===")
             print(normalize_for_tts(retry_response.answer_text))
 
             return retry_response
 
-        chunks = retrieve_chunks(normalized_query)
+        chunks = retrieve_chunks(
+            query=repair.repaired_text,
+            intent_hint=repair.intent,
+            forced_source_hint=repair.forced_source_hint,
+            entity_hints={
+                "artist": repair.artist_entity,
+                "artwork": repair.artwork_entity,
+                "general": repair.general_entity,
+            },
+        )
 
         print("\n=== RETRIEVED CHUNKS ===")
         for i, chunk in enumerate(chunks, start=1):
@@ -123,12 +172,20 @@ async def ask(audio: UploadFile = File(...)):
             print(f"text preview: {chunk.get('text', '')[:500]}")
 
         system_prompt = build_system_prompt()
-        user_prompt = build_user_prompt(normalized_query, chunks)
+        user_prompt = build_user_prompt(
+            query=normalized_query,
+            chunks=chunks,
+            repaired_query=repair.repaired_text,
+            intent=repair.intent,
+        )
 
         print("\n=== USER PROMPT ===")
         print(user_prompt)
 
-        answer_text = generate_answer(system_prompt=system_prompt, user_prompt=user_prompt)
+        answer_text = generate_answer(
+            system_prompt=system_prompt,
+            user_prompt=user_prompt,
+        )
 
         print("\n=== ANSWER ===")
         print(answer_text)

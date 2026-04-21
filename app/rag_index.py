@@ -11,12 +11,15 @@ from app.config import (
 )
 from app.embeddings import embed_texts
 
+
 def get_chroma_client():
     return chromadb.PersistentClient(path=CHROMA_PATH)
+
 
 def get_collection():
     client = get_chroma_client()
     return client.get_or_create_collection(name=CHROMA_COLLECTION_NAME)
+
 
 def list_markdown_files(root_dir: str) -> list[str]:
     paths = []
@@ -26,9 +29,11 @@ def list_markdown_files(root_dir: str) -> list[str]:
                 paths.append(os.path.join(base, f))
     return sorted(paths)
 
+
 def read_text(path: str) -> str:
     with open(path, "r", encoding="utf-8") as f:
         return f.read()
+
 
 def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVERLAP) -> list[str]:
     text = text.strip()
@@ -41,13 +46,17 @@ def split_into_chunks(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CH
     while start < len(text):
         end = min(start + chunk_size, len(text))
         chunk = text[start:end].strip()
+
         if chunk:
             chunks.append(chunk)
+
         if end >= len(text):
             break
+
         start = max(end - overlap, start + 1)
 
     return chunks
+
 
 def build_metadata(file_path: str, chunk_index: int) -> dict:
     rel_path = os.path.relpath(file_path, DOCS_PATH).replace("\\", "/")
@@ -61,6 +70,7 @@ def build_metadata(file_path: str, chunk_index: int) -> dict:
         "filename": filename,
         "chunk_index": chunk_index,
     }
+
 
 def rebuild_index() -> dict:
     collection = get_collection()

@@ -4,9 +4,44 @@ import unicodedata
 
 def _strip_accents(text: str) -> str:
     return "".join(
-        c for c in unicodedata.normalize("NFKD", text)
+        c for c in unicodedata.normalize("NFKD", text or "")
         if not unicodedata.combining(c)
     )
+
+
+def _capitalize_first(text: str) -> str:
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
+
+
+def _fix_title_casing(text: str) -> str:
+    text = re.sub(r"\bim schwarzen kreis\b", "Im schwarzen Kreis", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bboglar i\b", "Boglar I", text, flags=re.IGNORECASE)
+    text = re.sub(r"\byabla\b", "Yabla", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bbridget riley\b", "Bridget Riley", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bvictor vasarely\b", "Victor Vasarely", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bwojciech fangor\b", "Wojciech Fangor", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bmargaret wenstrup\b", "Margaret Wenstrup", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bwassily kandinsky\b", "Wassily Kandinsky", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bkandinsky\b", "Kandinsky", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bjulian stanczak\b", "Julian Stanczak", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bedna andrade\b", "Edna Andrade", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bspätes leuchten\b", "Spätes Leuchten", text, flags=re.IGNORECASE)
+    text = re.sub(r"\babstoßende anziehung\b", "Abstoßende Anziehung", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bflüchtige bewegung\b", "Flüchtige Bewegung", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bklepsydra 1\b", "Klepsydra 1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bshih-li\b", "Shih-Li", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bkreisel\b", "Kreisel", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bzittern\b", "Zittern", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bb13\b", "B13", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bb15\b", "B15", text, flags=re.IGNORECASE)
+    text = re.sub(r"\be37\b", "E37", text, flags=re.IGNORECASE)
+    text = re.sub(r"\be47\b", "E47", text, flags=re.IGNORECASE)
+    text = re.sub(r"\b4-64\b", "4-64", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bop-art\b", "Op-Art", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bspace age\b", "Space Age", text, flags=re.IGNORECASE)
+    return text
 
 
 def normalize_for_tts(text: str) -> str:
@@ -15,21 +50,23 @@ def normalize_for_tts(text: str) -> str:
 
     spoken = text
 
-    # Künstlernamen
+    # Künstlernamen natürlicher sprechen
     spoken = re.sub(r"\bWojciech\b", "Woitschech", spoken)
     spoken = re.sub(r"\bWassily\b", "Wassili", spoken)
     spoken = re.sub(r"\bKandinsky\b", "Kandinski", spoken)
+    spoken = re.sub(r"\bVasarely\b", "Wasarely", spoken)
+    spoken = re.sub(r"\bSta[nń]czak\b", "Stantschak", spoken)
 
-    # Werktitel mit römischen Ziffern für natürlichere Ausgabe
+    # Werktitel
     spoken = re.sub(r"\bBoglar I\b", "Boglar eins", spoken)
-    spoken = re.sub(r"\bVegaviv II\b", "Vegaviv zwei", spoken)
     spoken = re.sub(r"\bKlepsydra 1\b", "Klepsydra eins", spoken)
 
-    # B-/E-Werke natürlicher sprechen
+    # Werkcodes natürlicher sprechen
     spoken = re.sub(r"\bB13\b", "B 13", spoken)
     spoken = re.sub(r"\bB15\b", "B 15", spoken)
     spoken = re.sub(r"\bE37\b", "E 37", spoken)
     spoken = re.sub(r"\bE47\b", "E 47", spoken)
+    spoken = re.sub(r"\b4-64\b", "4 64", spoken)
 
     # Titel
     spoken = re.sub(r"\bShih-Li\b", "Schih Li", spoken)
@@ -38,11 +75,15 @@ def normalize_for_tts(text: str) -> str:
     # Jahresangaben
     spoken = re.sub(r"\bum\s+1923\b", "ungefähr 1923", spoken)
 
+    # Satzzeichen und Leerzeichen
+    spoken = spoken.replace("„", '"').replace("“", '"')
+    spoken = re.sub(r"\s+", " ", spoken).strip()
+
     return spoken
 
 
-def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
-    source = normalized_query if normalized_query else raw_text
+def beautify_query_for_display(raw_text: str, normalized_query: str, repaired_query: str = "") -> str:
+    source = repaired_query if repaired_query else (normalized_query if normalized_query else raw_text)
     if not source:
         return ""
 
@@ -72,9 +113,13 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
     q = re.sub(r"\bwasaweli\b", "vasarely", q)
 
     q = re.sub(r"\bfango\b", "fangor", q)
+    q = re.sub(r"\bvan moor\b", "fangor", q)
+    q = re.sub(r"\bfugner\b", "fangor", q)
+    q = re.sub(r"\bfugnor\b", "fangor", q)
     q = re.sub(r"\bvojtech\b", "wojciech", q)
     q = re.sub(r"\bvojteh\b", "wojciech", q)
     q = re.sub(r"\bvojtec\b", "wojciech", q)
+    q = re.sub(r"\bwoitschech\b", "wojciech", q)
 
     q = re.sub(r"\bbrigitte\b", "bridget", q)
     q = re.sub(r"\bbritta\b", "bridget", q)
@@ -90,16 +135,6 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
     q = re.sub(r"\bdreiling\b", "riley", q)
     q = re.sub(r"\bdreilin\b", "riley", q)
 
-    q = re.sub(r"\bbridget reil\b", "bridget riley", q)
-    q = re.sub(r"\bbridget reilly\b", "bridget riley", q)
-    q = re.sub(r"\bbridget rail\b", "bridget riley", q)
-    q = re.sub(r"\bbridget dryly\b", "bridget riley", q)
-    q = re.sub(r"\bbridget draily\b", "bridget riley", q)
-    q = re.sub(r"\bbridget dreiling\b", "bridget riley", q)
-    q = re.sub(r"\bbritta riley\b", "bridget riley", q)
-    q = re.sub(r"\bbritta reil\b", "bridget riley", q)
-    q = re.sub(r"\bbritta dreiling\b", "bridget riley", q)
-
     q = re.sub(r"\bmargret\b", "margaret", q)
     q = re.sub(r"\bwenstrub\b", "wenstrup", q)
     q = re.sub(r"\bwenstrupp\b", "wenstrup", q)
@@ -109,8 +144,12 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
     q = re.sub(r"\bkandisky\b", "kandinsky", q)
     q = re.sub(r"\bwassili\b", "wassily", q)
     q = re.sub(r"\bwasili\b", "wassily", q)
+    q = re.sub(r"\bbasilikum\b", "kandinsky", q)
 
-    # Extreme Sonderfälle aus STT
+    q = re.sub(r"\bsta[nn]czak\b", "stanczak", q)
+    q = re.sub(r"\bstantschak\b", "stanczak", q)
+
+    # Extreme Sonderfälle
     q = re.sub(r"\bwir haben abgetrocknet\b", "wer ist bridget riley", q)
     q = re.sub(r"\bich bin liebti britta dreiling\b", "wann lebte bridget riley", q)
     q = re.sub(r"\bcant leave the bridge dryly\b", "wer ist bridget riley", q)
@@ -149,6 +188,12 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
     q = re.sub(r"\bschi li\b", "shih-li", q)
     q = re.sub(r"\bshi li\b", "shih-li", q)
 
+    q = re.sub(r"\bspates leuchten\b", "spätes leuchten", q)
+    q = re.sub(r"\bspaetes leuchten\b", "spätes leuchten", q)
+    q = re.sub(r"\babstossende anziehung\b", "abstoßende anziehung", q)
+    q = re.sub(r"\bfluechtige bewegung\b", "flüchtige bewegung", q)
+    q = re.sub(r"\bfluchtige bewegung\b", "flüchtige bewegung", q)
+
     # Werkcodes
     q = re.sub(r"\bb\s*[\.\-]?\s*13\b", "b13", q)
     q = re.sub(r"\bb\s*[\.\-]?\s*15\b", "b15", q)
@@ -159,13 +204,14 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
 
     # Frageformen glätten
     q = re.sub(r"\bwer malte\b", "von wem ist", q)
-    q = re.sub(r"\bwer hat das werk ([a-z0-9\s\-]+) gemalt\b", r"von wem ist das Werk \1", q)
-    q = re.sub(r"\bwer hat das ([a-z0-9\s\-]+) gemalt\b", r"von wem ist \1", q)
-    q = re.sub(r"\bwer ist\b", "wer ist", q)
-    q = re.sub(r"\bwann lebte\b", "wann lebte", q)
-    q = re.sub(r"\bwann wurde\b", "wann wurde", q)
-    q = re.sub(r"\bwann entstand\b", "wann entstand", q)
-    q = re.sub(r"\bwas bedeutete\b", "was bedeutete", q)
+    q = re.sub(r"\bwer hat das werk ([a-z0-9äöüß\s\-]+) gemalt\b", r"von wem ist das Werk \1", q)
+    q = re.sub(r"\bwer hat das ([a-z0-9äöüß\s\-]+) gemalt\b", r"von wem ist \1", q)
+
+    # Doppelte Wörter entfernen
+    prev = None
+    while prev != q:
+        prev = q
+        q = re.sub(r"\b(\w+)( \1\b)+", r"\1", q)
 
     # Verbesserung der Schreibweise
     replacements = [
@@ -176,77 +222,43 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
         (r"\bmargaret wenstrup\b", "Margaret Wenstrup"),
         (r"\bwassily kandinsky\b", "Wassily Kandinsky"),
         (r"\bkandinsky\b", "Kandinsky"),
+        (r"\bjulian stanczak\b", "Julian Stanczak"),
+        (r"\bedna andrade\b", "Edna Andrade"),
         (r"\byabla\b", "Yabla"),
         (r"\bboglar i\b", "Boglar I"),
         (r"\bim schwarzen kreis\b", "Im schwarzen Kreis"),
         (r"\bklepsydra 1\b", "Klepsydra 1"),
         (r"\bshih-li\b", "Shih-Li"),
+        (r"\bspätes leuchten\b", "Spätes Leuchten"),
+        (r"\babstoßende anziehung\b", "Abstoßende Anziehung"),
+        (r"\bflüchtige bewegung\b", "Flüchtige Bewegung"),
         (r"\bkreisel\b", "Kreisel"),
         (r"\bzittern\b", "Zittern"),
         (r"\bb13\b", "B13"),
         (r"\bb15\b", "B15"),
         (r"\be37\b", "E37"),
         (r"\be47\b", "E47"),
+        (r"\b4-64\b", "4-64"),
+        (r"\bop-art\b", "Op-Art"),
+        (r"\bspace age\b", "Space Age"),
     ]
 
     for pattern, repl in replacements:
         q = re.sub(pattern, repl, q, flags=re.IGNORECASE)
 
-    # Frageanfänge hübscher formulieren
-    q = re.sub(
-        r"\bwann entstand das werk ([^?]+)\b",
-        r"Wann entstand das Werk \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwann entstand ([^?]+)\b",
-        r"Wann entstand \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwann wurde ([^?]+) gemalt\b",
-        r"Wann wurde \1 gemalt",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwann wurde ([^?]+) geboren\b",
-        r"Wann wurde \1 geboren",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwann lebte ([^?]+)\b",
-        r"Wann lebte \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwer ist ([^?]+)\b",
-        r"Wer ist \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bvon wem ist ([^?]+)\b",
-        r"Von wem ist \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwas bedeutete die vierte dimension fur ([^?]+)\b",
-        r"Was bedeutete die vierte Dimension für \1",
-        q,
-        flags=re.IGNORECASE,
-    )
-    q = re.sub(
-        r"\bwas bedeutete die vierte dimension fuer ([^?]+)\b",
-        r"Was bedeutete die vierte Dimension für \1",
-        q,
-        flags=re.IGNORECASE,
-    )
+    # Frageanfänge 
+    q = re.sub(r"\bwann entstand das werk ([^?]+)\b", r"Wann entstand das Werk \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann entstand ([^?]+)\b", r"Wann entstand \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann wurde ([^?]+) gemalt\b", r"Wann wurde \1 gemalt", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann wurde ([^?]+) geboren\b", r"Wann wurde \1 geboren", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwo wurde ([^?]+) geboren\b", r"Wo wurde \1 geboren", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann lebte ([^?]+)\b", r"Wann lebte \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwer ist ([^?]+)\b", r"Wer ist \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bvon wem ist ([^?]+)\b", r"Von wem ist \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwas bedeutete die vierte dimension fur ([^?]+)\b", r"Was bedeutete die vierte Dimension für \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwas bedeutete die vierte dimension fuer ([^?]+)\b", r"Was bedeutete die vierte Dimension für \1", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwie kann man op-art definieren\b", "Wie kann man Op-Art definieren", q, flags=re.IGNORECASE)
+    q = re.sub(r"\bwann war das space age\b", "Wann war das Space Age", q, flags=re.IGNORECASE)
 
     q = re.sub(r"\s+", " ", q).strip()
     q = _fix_title_casing(q)
@@ -256,30 +268,3 @@ def beautify_query_for_display(raw_text: str, normalized_query: str) -> str:
         q += "?"
 
     return q
-
-
-def _capitalize_first(text: str) -> str:
-    if not text:
-        return text
-    return text[0].upper() + text[1:]
-
-
-def _fix_title_casing(text: str) -> str:
-    text = re.sub(r"\bim schwarzen kreis\b", "Im schwarzen Kreis", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bboglar i\b", "Boglar I", text, flags=re.IGNORECASE)
-    text = re.sub(r"\byabla\b", "Yabla", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bbridget riley\b", "Bridget Riley", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bvictor vasarely\b", "Victor Vasarely", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bwojciech fangor\b", "Wojciech Fangor", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bmargaret wenstrup\b", "Margaret Wenstrup", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bwassily kandinsky\b", "Wassily Kandinsky", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bkandinsky\b", "Kandinsky", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bb13\b", "B13", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bb15\b", "B15", text, flags=re.IGNORECASE)
-    text = re.sub(r"\be37\b", "E37", text, flags=re.IGNORECASE)
-    text = re.sub(r"\be47\b", "E47", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bklepsydra 1\b", "Klepsydra 1", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bshih-li\b", "Shih-Li", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bkreisel\b", "Kreisel", text, flags=re.IGNORECASE)
-    text = re.sub(r"\bzittern\b", "Zittern", text, flags=re.IGNORECASE)
-    return text
